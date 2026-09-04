@@ -1,0 +1,4010 @@
+[
+  {
+    "relPath": "Orders/OrderExport/orderexport2.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Order",
+        "columns": [
+          "code[alias=Order No.]",
+          "date[alias=Order Date]",
+          "totalPrice[alias=Total Price]",
+          "deliverymessage[alias=Delivery Lead Time]",
+          "consignments(status(code))[alias=Consignment Status]",
+          "consignments(shippingDate)[alias=ShippingDate]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Orders/OrderExport/orderexport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Order",
+        "columns": [
+          "code[alias=Order No.]",
+          "date[alias=Order Date]",
+          "currency(isocode)[alias=Currency]",
+          "totalPrice[alias=Total Price]",
+          "totalTax[alias=Tax]",
+          "user(uid)[alias=Customer]",
+          "status(code)[alias=Order Status]",
+          "paymentInfo(adyenPaymentMethod)[alias=Payment Mode]",
+          "paymentInfo(itemtype(code))[alias=Payment Info Type]",
+          "deliveryMode(code)[alias=Delivery Mode]",
+          "deliveryType(code)[alias=Delivery Type]",
+          "discounts[alias=Discounts]",
+          "appliedCouponCodes[alias=Promo Code Applied]",
+          "wesStoreId[alias=WES If Store:Yes]",
+          "salesApplication(code)[alias=Sales Application]",
+          "sapDeliveryNumber[alias=SAP Delivery Number]",
+          "site(uid)[alias=Site]",
+          "store(uid)[alias=Store]",
+          "entries(product(name[lang=$lang]),product(code),quantity,basePrice,totalPrice)",
+          "entries(product(manufacturerName))[alias=Brand]",
+          "paymentStatus(code)[alias=Payment Status]",
+          "paymentAddress(company,appartment,building,streetnumber,StreetName,district,town,county,region(name[lang=$lang]),postalCode,country(name[lang=$lang]))",
+          "deliveryAddress(company,appartment,building,streetnumber,StreetName,district,town,county,region(name[lang=$lang]),postalCode,country(name[lang=$lang]))",
+          "consignments(status(code))[alias=Consignment Status]",
+          "consignments(shippingDate)[alias=ShippingDate]",
+          "consignments(carrier)[alias=Carrier]",
+          "consignments(trackingID)[alias=Tracking ID]",
+          "paymentInfo(AdyenPaymentInfo.adyenPaymentMethod|blankValue[virtual=true,default=\"\"])[alias=Adyen Payment Method]",
+          "paymentInfo(AdyenPaymentInfo.adyenPaymentMethodVariant|blankValue[virtual=true,default=\"\"])[alias=Adyen Payment Method Variant]",
+          "paymentInfo(V12PaymentInfo.applicationId|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Application ID]",
+          "paymentInfo(V12PaymentInfo.apr|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - APR]",
+          "paymentInfo(V12PaymentInfo.creditPolicyTag|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Credit Policy Tag]",
+          "paymentInfo(V12PaymentInfo.deposit|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Deposit]",
+          "paymentInfo(V12PaymentInfo.months|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Months]",
+          "paymentInfo(V12PaymentInfo.plan(code)|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Plan (Code)]",
+          "paymentInfo(V12PaymentInfo.plan(name[lang=$lang])|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - Plan (Name)]",
+          "paymentInfo(V12PaymentInfo.tag|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - tag]",
+          "paymentInfo(V12PaymentInfo.status|blankValue[virtual=true,default=\"\"])[alias=V12 Payment - status]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.authorisationId|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Authorisation ID]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.captureId|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Capture ID]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.financingFeeAmount|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Financing Fee Amount]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.financingMonthlyPayment|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Financing Monthly Payment]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.financingterm|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Financing Term]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.financingTotalCost|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Financing Total Cost]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.paymentType|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Payment Type]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.paymentId|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Payment ID]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.payer|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Payer]",
+          "paymentInfo(PayPalInstalmentPaymentInfo.isFinancing|blankValue[virtual=true,default=\"\"])[alias=Pay Pal Instalments - Is Financing]",
+          "paymentInfo(PayPalPaymentInfo.code|blankValue[virtual=true,default=\"\"])[alias= PayPal Payment - Code]",
+          "paymentInfo(PayPalPaymentInfo.isFinancing|blankValue[virtual=true,default=\"\"])[alias= PayPal Payment - Is Financing]",
+          "paymentInfo(PayPalPaymentInfo.payer|blankValue[virtual=true,default=\"\"])[alias= PayPal Payment - Payer]",
+          "paymentInfo(PayPalPaymentInfo.payerId|blankValue[virtual=true,default=\"\"])[alias= PayPal Payment - Payer ID]",
+          "returnRequests(code)[alias=Return Request Number]",
+          "returnRequests(RMA)[alias=RMA]",
+          "returnRequests(status(name[lang=$lang]))[alias=Return Status]",
+          "returnRequests(sapDeliveryNumber)[alias=Return Delivery Number]",
+          "returnRequests(returnTotal)[alias=Return Total Value][numberformat==#.##]",
+          "paymentTransactions(requestId)[alias=LoanID]",
+          "wesStoreId(code)[alias=WES Store]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Products/C&C Restriction/export/new/ClickandCollectRestrictionExportTRUENULL.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/C&C Restriction/export/new/ClickandCollectRestrictionExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/C&C Restriction/export/old/ClickandCollectRestrictionExportTRUENULL.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/C&C Restriction/export/old/ClickandCollectRestrictionExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/C&C Restriction/import/new/ClickAndCollectRestrictionTrueFalse.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted[default=true]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/C&C Restriction/import/new/ClickAndCollectRestrictionImport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectAllowedStores",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/C&C Restriction/import/old/ClickAndCollectRestrictionTrueFalse.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted[default=true]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/C&C Restriction/import/old/ClickAndCollectRestrictionImport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "clickAndCollectRestricted[default=true]",
+          "clickAndCollectAllowedStores",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Images/ProductExportDescription,ManufacturerName.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "akamaiImageCount"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Akamai/Images/additionalProductImageURLList/Remove/additionalProductImageURLListRemove.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "additionalProductImageURLList[mode=remove]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "MappinAndWebb_UK_ProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Images/additionalProductImageURLList/Add/additionalProductImageURLListAdd.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "additionalProductImageURLList[mode=append]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "MappinAndWebb_UK_ProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Images/ImageCount/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "akamaiImageCount",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "AkamaiImageCount.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "AkamaiImageCount.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Akamai Image Count"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Roundels/Import/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "akamaiRoundel",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "AkamaiRoundels.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "AkamaiRoundels.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "AkamaiRoundels"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Roundels/Export/Product List/ProductRoundelSkuListExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "akamaiRoundel"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Roundels/Export/SKU Wildcard/ProductRoundelSkuWildcardExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "akamaiRoundel"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Akamai/Roundels/Export/Roundel Wildcard/ProductRoundelRoundelWildcardExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "akamaiRoundel"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/ProductSpecialBrand3Loadsheet/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "specialBrandField3[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductSpecialBrand3Loadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductSpecialBrand3Loadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Special Brand Field 3",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/SpecialBrandFeature/SpecialBrandFeature.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SpecialBrandFeature",
+        "columns": [
+          "code[unique=true]",
+          "title",
+          "text",
+          "image"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Special Brand/SpecialBrandFeature/SpecialBrandProductAssociation.impex",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$productCV[unique=true]",
+          "code[unique=true]",
+          "specialBrandFeatures(code)[mode=append]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "productCV": "catalogVersion(CatalogVersion.catalog(Catalog.id[default=$productCatalog]),CatalogVersion.version[default=Staged])[default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/SpecialBrandFeature/SpecialBrandFeatures/importscript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SpecialBrandFeature",
+        "columns": [
+          "code[unique=true]",
+          "title[lang=$lang]",
+          "title[lang=$lang2]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SpecialBrandFeatures.csv",
+        "encoding": "UTF-8",
+        "delimiter": ";",
+        "linesToSkip": 1,
+        "columnOffset": -1
+      }
+    ],
+    "csvHeaderRows": {
+      "SpecialBrandFeatures.csv": [
+        "# code,title_en,title_en_US"
+      ]
+    },
+    "macros": {
+      "lang": "en",
+      "lang2": "en_US"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/Description/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "specialBrandDescription[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductSpecialBrandLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductSpecialBrandLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Special Brand Description",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/Import/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductSpecialBrandLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductSpecialBrandLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Special Brand Description",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/Export/SpecialBrand.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SpecialBrandFeature",
+        "columns": [
+          "code[unique=true]",
+          "title[lang=en]",
+          "title[lang=en_US]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Special Brand/Export/Product List/ProductSpecialBrand1&2Export.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField1[lang=$lang2]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField2[lang=$lang2]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang2": "en_US"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/Export/Product List/ProductSpecialBrandListExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en_US"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/Export/SKU Wildcard/ProductSpecialBrandWildcardExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en_US"
+    }
+  },
+  {
+    "relPath": "Products/Special Brand/ProductCssClasses/productCssClasses.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "productCssClasses",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/SOLR Tiebreaker Values/Watches of Switzerland US/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "solrTiebreakerSortScore",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SolrTiebreakerSortScore.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "SolrTiebreakerSortScore.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "SOLR Tiebreaker Sort Score",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "WatchesOfSwitzerland_US_ProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]"
+    }
+  },
+  {
+    "relPath": "Products/SOLR Tiebreaker Values/Mayors US/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "solrTiebreakerSortScore",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SolrTiebreakerSortScore.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "SolrTiebreakerSortScore.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "SOLR Tiebreaker Sort Score",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/YMAL Loadsheets/YMAL Enabled/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "youMayAlsoLikeEnabled[default=True]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "youMayAlsoLikeEnabledSheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "youMayAlsoLikeEnabledSheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "YMAL Campaign",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/YMAL Loadsheets/RolexCPO Master Product/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "productType(code)",
+          "$supercategories",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "specialBrandField1[lang=$lang2]",
+          "specialBrandField2[lang=$lang2]",
+          "specialBrandField3[lang=$lang2]",
+          "specialBrandDescription[lang=$lang2]",
+          "manufacturerAID",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "clickAndCollectRestricted[default=False]",
+          "clickAndCollectAllowedStores",
+          "akamaiImageCount",
+          "usePngImageFormat[default=True]",
+          "has360Image[default=True]",
+          "googleShoppingFeedImageURL",
+          "excludeFromFreeTextSearch[default=False]",
+          "pageTitle[lang=$lang]",
+          "pageTitle[lang=$lang2]",
+          "manufacturedYear",
+          "metaDescription[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "youMayAlsoLikeEnabled[default=True]",
+          "youMayAlsoLikeCampaign",
+          "$unit",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "masterCPOProductLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "masterCPOProductLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Manufacturer Name",
+        "Name",
+        "Name – Lang 2",
+        "Description",
+        "Description – Lang 2",
+        "Product Type ",
+        "Categories",
+        "Special Brand Field 1",
+        "Special Brand Field 2",
+        "Special Brand Field 3",
+        "Special Brand Description",
+        "Special Brand Field 1 - Lang 2",
+        "Special Brand Field 2 - Lang 2",
+        "Special Brand Field 3 - Lang 2",
+        "Special Brand Description - Lang 2",
+        "MPN",
+        "Display On Site",
+        "Allow Purchase On Site",
+        "Show Price On Site ",
+        "Is Virtual On Site",
+        "Can Gift Wrap On Site",
+        "Home Delivery Available on site",
+        "Collect In Store Available on site",
+        "Enable Paypal Credit On Site",
+        "Enable Paypal Express On Site",
+        "Click and collect restricted? ",
+        "Click and collect allowed stores",
+        "Akamai Image Count",
+        "Use Png Image Format [default=True]",
+        "Product has 360 image? [default=True]",
+        "Google Shopping Feed Image",
+        "Exclude From Free Text Search [default=False]",
+        "Page Title",
+        "Page Title - Lang 2",
+        "Manufactured Year",
+        "Meta Description",
+        "Meta Keywords",
+        "YMAL Enabled?",
+        "YMAL Campaign",
+        "Unit [default=EA]",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/YMAL Loadsheets/YMAL Campaign/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "youMayAlsoLikeCampaign",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "youMayAlsoLikeCampaignSheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "youMayAlsoLikeCampaignSheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "YMAL Campaign",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/YMAL Loadsheets/YMAL Campaign & Enabled/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "youMayAlsoLikeEnabled[default=True]",
+          "youMayAlsoLikeCampaign",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "youMayAlsoLikeAttributesSheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "youMayAlsoLikeAttributesSheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "YMAL Enabled?[default=True]",
+        "YMAL Campaign",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/Restricted Fraud/False/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "requireOrderApproval[default=false]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "RestrictedFraud.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "RestrictedFraud.csv": [
+        "Type (Leave Blank)",
+        "SKU"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/Restricted Fraud/True/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "requireOrderApproval[default=true]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "RestrictedFraud.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "RestrictedFraud.csv": [
+        "Type (Leave Blank)",
+        "SKU"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/IsSpecialOrder/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "isSpecialOrder",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SpecialOrder.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "SpecialOrder.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Is Special Order",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/usePngImageFormat/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "usePngImageFormat[default=False]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "usePngImageFormat.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "usePngImageFormat.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Catalogue Version (Leave Blank)",
+        "Use Png Image Format [default=False]"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/SAPLoaded/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "sapLoaded[default=False]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SAPLoadedData.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "SAPLoadedData.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "SAP Loaded Data?",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/isManufacturerProductNumberHidden/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "isManufacturerProductNumberHidden",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "isManufacturerProductNumberHidden.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "isManufacturerProductNumberHidden.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "MPN Hidden?",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/TrueFalse/Home-CC-SpecialOrder/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "homeDeliveryAvailable",
+          "collectInStoreAvailable",
+          "isSpecialOrder",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "HomeDelivery-CC-SpecialOrder.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "HomeDelivery-CC-SpecialOrder.csv": [
+        "Type (Leave Blank)",
+        "SKU;Home Delivery Available",
+        "Collect In Store Available",
+        "Is Special Order",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Finance Exclusions/Remove/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "excludedFromFinanceProviders(code)[mode=remove]",
+          "excludedFromFinancePlans(code)[mode=remove]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFinanceExclusionsRemoveLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFinanceExclusionsRemoveLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Excluded From Finance Providers – Remove",
+        "Excluded From Finance Plans – Remove"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Finance Exclusions/Append/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "excludedFromFinanceProviders(code)[mode=append]",
+          "excludedFromFinancePlans(code)[mode=append]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFinanceExclusionsAppendLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFinanceExclusionsAppendLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Excluded From Finance Providers – Append",
+        "Excluded From Finance Plans – Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Associated Products/YouMayAlsoLikeExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "youMayAlsoLike(code)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Products/Associated Products/Remove/AllAssociationsInOne/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "seeMoreStyles(code, $catalogVersion)[mode=remove]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=remove]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "AssociatedProductsRemoveLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "AssociatedProductsRemoveLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "See More Styles - Associated Product List � Remove",
+        "You May Also Like - Associated Product List � Remove"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Associated Products/Append/AllAssociationsInOne/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "seeMoreStyles(code, $catalogVersion)[mode=append]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=append]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "AssociatedProductsAppendLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "AssociatedProductsAppendLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "See More Styles - Associated Product List � Append",
+        "You May Also Like - Associated Product List � Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Associated Products/Append/SeeMoreStyles/Remove/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "seeMoreStylesRef(code, $catalogVersion)[mode=remove,collection-delimiter='|']",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SeeMoreStylesLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": -1
+      }
+    ],
+    "csvHeaderRows": {
+      "SeeMoreStylesLoadsheet.csv": [
+        "SKU",
+        "See More Styles - Associated Product List � Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Associated Products/Append/SeeMoreStyles/Append/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "seeMoreStylesRef(code, $catalogVersion)[mode=append,collection-delimiter='|']",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "SeeMoreStylesLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": -1
+      }
+    ],
+    "csvHeaderRows": {
+      "SeeMoreStylesLoadsheet.csv": [
+        "SKU",
+        "See More Styles - Associated Product List � Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Video URL/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "videoURL[lang=$lang]",
+          "videoURL[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "VideoURL.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "VideoURL.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Video URL UK",
+        "Video URL US",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Name/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductNameLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductNameLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Name UK",
+        "Name US",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Product Specification Sequence/ProductSpecSequence.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetType",
+        "columns": [
+          "code[unique=true]",
+          "SequenceNumber"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/publishedDate/publishedDate.txt",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "publishedDate[dateformat='MMM d, yyyy, h:mm:ss a']",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Measurements/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "measurements[lang=$lang]",
+          "measurements[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "Measurements.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "Measurements.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Measurements UK",
+        "Measurements US",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Notes/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "notes",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductNotesLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductNotesLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Description",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Facets/Import/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "productFacetMap(key(code),value(code))[map-delimiter=|]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "code",
+        "productFacetMap",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Facets/Export/List/ProductFacetListExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "productFacetMap(key(code),value(code))[map-delimiter=|]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Facets/Export/Wildcard/ProductFacetWildcardExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "productFacetMap(key(code),value(code))[map-delimiter=|]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Variant Products/Without Facets/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "VariantProduct",
+        "columns": [
+          "baseProduct(code, $catalogVersion)",
+          "code[unique=true]",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "$supercategories",
+          "varianttype(code)",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "localStockCheckerVisibleOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "productType(code)",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "VariantProductLoadsheetWithoutFacets.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "VariantProductLoadsheetWithoutFacets.csv": [
+        "Variant Type",
+        "Parent SKU",
+        "SKU",
+        "Manufacturer Name",
+        "Name",
+        "Name – Lang 2",
+        "Description",
+        "Description – Lang 2",
+        "Categories",
+        "Variant Child Type",
+        "Display On Site",
+        "Allow Purchase On Site",
+        "Show Price On Site",
+        "Is Virtual On Site",
+        "Can Gift Wrap On Site",
+        "Show Local Stock Checker On Site",
+        "Home Delivery Available on site",
+        "Collect In Store Available on site",
+        "Enable Paypal Credit On Site",
+        "Enable Paypal Express On Site",
+        "Product Type",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Variant Products/With Facets/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "VariantProduct",
+        "columns": [
+          "baseProduct(code, $catalogVersion)",
+          "code[unique=true]",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "$supercategories",
+          "productFacetMap(key(code),value(code))[map-delimiter=|]",
+          "varianttype(code)",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "localStockCheckerVisibleOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "productType(code)",
+          "excludeStoreStockOnSite(uid)",
+          "publishedDate[dateformat='dd/MM/yyyy HH:mm']",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "VariantProductLoadsheetWithFacets.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "VariantProductLoadsheetWithFacets.csv": [
+        "Variant Type",
+        "Parent SKU",
+        "SKU",
+        "Manufacturer Name",
+        "Name",
+        "Name – Lang 2",
+        "Description",
+        "Description – Lang 2",
+        "Categories",
+        "Facet Map",
+        "Variant Child Type",
+        "Display On Site",
+        "Allow Purchase On Site",
+        "Show Price On Site",
+        "Is Virtual On Site",
+        "Can Gift Wrap On Site",
+        "Show Local Stock Checker On Site",
+        "Home Delivery Available on site",
+        "Collect In Store Available on site",
+        "Enable Paypal Credit On Site",
+        "Enable Paypal Express On Site",
+        "Product Type",
+        "Store Stock Exclude",
+        "Published Date",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Variant Products/ChangeParentChild/importScript.impex",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "VariantProduct",
+        "columns": [
+          "baseProduct(code, $catalogVersion)",
+          "code[unique=true]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ChangeParentChild.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ChangeParentChild.csv": [
+        "Variant Type (Leave Blank)",
+        "Parent SKU",
+        "SKU"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Approval/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$approved",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ApprovalProductLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ApprovalProductLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Approved [default='unapproved']",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "approved": "approvalstatus(code)[default='unapproved']"
+    }
+  },
+  {
+    "relPath": "Products/USRingBuilder/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "manufacturerAID",
+          "EAN",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "usePngImageFormat[default=False]",
+          "excludeFromFreeTextSearch[default=False]",
+          "seeMoreStyles(code, $catalogVersion)[mode=append]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=append]",
+          "pageTitle[lang=$lang]",
+          "varianttype(code)",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores",
+          "isManufacturerProductNumberHidden",
+          "metaDescription[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "productType(code)",
+          "$unit",
+          "productFacetMap(key(code),value(code))[map-delimiter=|]",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "BaseProductRingBuilder.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "BaseProductRingBuilder.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories",
+        "Manufacturer Name",
+        "Name",
+        "Name – Lang 2",
+        "Description",
+        "Description – Lang 2",
+        "MPN",
+        "EAN",
+        "Display On Site",
+        "Allow Purchase On Site",
+        "Show Price On Site",
+        "Is Virtual On Site",
+        "Can Gift Wrap On Site",
+        "Home Delivery Available on site",
+        "Collect In Store Available on site",
+        "Enable Paypal Credit On Site",
+        "Enable Paypal Express On Site",
+        "Use Png Image Format [default=False]",
+        "Exclude From Free Text Search [default=False]",
+        "See More Styles - Associated Product List – Append",
+        "You May Also Like - Associated Product List – Append",
+        "Page Title",
+        "Variant Child Type",
+        "Click and collect restricted?",
+        "Click and collect allowed stores",
+        "MPN Hidden?",
+        "Meta Description",
+        "Meta Keywords",
+        "Special Brand Field 1",
+        "Special Brand Field 2",
+        "Special Brand Field 3",
+        "Special Brand Description",
+        "ProductType",
+        "Unit [default=EA]",
+        "Facet Map",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Special Delivery/AssignDeliveryMessageToArticle.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$catalogVersion",
+          "deliveryPromises(key(uid),value(code))[map-delimiter=|]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Special Delivery/Export/Product List/ProductSpecialDeliveryRangeProductList.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "specialOrderDeliveryRanges(key(uid),value(code))[map-delimiter=|]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Products/Special Delivery/Export/SKU Wildcard/ProductSpecialDeliveryRangeSKUWildcard.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "specialOrderDeliveryRanges(key(uid),value(code))[map-delimiter=|]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Products/Master Product Loadsheet/Rolex Master Product Loadsheet/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "manufacturerAID",
+          "EAN",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "usePngImageFormat[default=False]",
+          "excludeFromFreeTextSearch[default=False]",
+          "seeMoreStyles(code, $catalogVersion)[mode=append]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=append]",
+          "pageTitle[lang=$lang]",
+          "varianttype(code)",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores",
+          "isManufacturerProductNumberHidden",
+          "measurements[lang=$lang]",
+          "metaDescription[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "productType(code)",
+          "$unit",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MasterProductLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MasterProductLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories",
+        "Manufacturer Name",
+        "Name",
+        "Name – Lang 2",
+        "Description",
+        "Description – Lang 2",
+        "MPN",
+        "EAN",
+        "Display On Site",
+        "Allow Purchase On Site",
+        "Show Price On Site",
+        "Is Virtual On Site",
+        "Can Gift Wrap On Site",
+        "Home Delivery Available on site",
+        "Collect In Store Available on site",
+        "Enable Paypal Credit On Site",
+        "Enable Paypal Express On Site",
+        "Use Png Image Format [default=False]",
+        "Exclude From Free Text Search [default=False]",
+        "See More Styles - Associated Product List – Append",
+        "You May Also Like - Associated Product List – Append",
+        "Page Title",
+        "Variant Child Type",
+        "Click and collect restricted?",
+        "Click and collect allowed stores",
+        "MPN Hidden?",
+        "Measurements",
+        "Meta Description",
+        "Meta Keywords",
+        "Special Brand Field 1",
+        "Special Brand Field 2",
+        "Special Brand Field 3",
+        "Special Brand Description",
+        "Product Type",
+        "Unit [default=EA]",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Master Product Loadsheet/MasterProductLoadsheet/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "manufacturerAID",
+          "EAN",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "localStockCheckerVisibleOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "enableKlarnaOnSite(uid)",
+          "usePngImageFormat[default=False]",
+          "excludeFromFreeTextSearch[default=False]",
+          "seeMoreStyles(code, $catalogVersion)[mode=append]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=append]",
+          "pageTitle[lang=$lang]",
+          "varianttype(code)",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores",
+          "isManufacturerProductNumberHidden",
+          "measurements[lang=$lang]",
+          "metaDescription[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "$unit",
+          "productType(code)",
+          "excludeStoreStockOnSite(uid)",
+          "publishedDate[dateformat='dd/MM/yyyy HH:mm']",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MasterProductLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MasterProductLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories",
+        "Manufacturer Name",
+        "Name",
+        "Name â€“ Lang 2",
+        "Description",
+        "Description â€“ Lang 2",
+        "manufacturerAID",
+        "EAN",
+        "DisplayOnSite",
+        "AllowPurchaseOnSite",
+        "ShowPriceOnSite",
+        "IsVirtualOnSite",
+        "localStockCheckerOnSite",
+        "CanGiftWrapOnSite",
+        "HomeDeliveryAvailableonsite",
+        "CollectInStoreAvailableonsite",
+        "EnablePaypalCreditOnSite",
+        "EnablePaypalExpressOnSite",
+        "EnableKlarnaOnSite",
+        "Use Png Image Format [default=False]",
+        "Exclude From Free Text Search [default=False]",
+        "See More Styles - Associated Product List â€“ Append",
+        "You May Also Like - Associated Product List â€“ Append",
+        "Page Title",
+        "Variant Child Type",
+        "Click and collect restricted?",
+        "Click and collect allowed stores",
+        "MPN Hidden?",
+        "Measurements",
+        "Meta Description",
+        "Meta Keywords",
+        "Special Brand Field 1",
+        "Special Brand Field 2",
+        "Special Brand Field 3",
+        "Special Brand Description",
+        "Unit [default=EA]",
+        "Product Type",
+        "Store Stock Exclude",
+        "Published Date",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Master Product Loadsheet/New folder/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "manufacturerAID",
+          "EAN",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "localStockCheckerVisibleOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "enableKlarnaOnSite(uid)",
+          "usePngImageFormat[default=False]",
+          "excludeFromFreeTextSearch[default=False]",
+          "seeMoreStyles(code, $catalogVersion)[mode=append]",
+          "youMayAlsoLike(code, $catalogVersion)[mode=append]",
+          "pageTitle[lang=$lang]",
+          "varianttype(code)",
+          "clickAndCollectRestricted",
+          "clickAndCollectAllowedStores",
+          "isManufacturerProductNumberHidden",
+          "measurements[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "$unit",
+          "productType(code)",
+          "excludeStoreStockOnSite(uid)",
+          "publishedDate[dateformat='dd/MM/yyyy HH:mm']",
+          "$catalogVersion",
+          "$approved"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MasterProductLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MasterProductLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories",
+        "Manufacturer Name",
+        "Name",
+        "Name â€“ Lang 2",
+        "Description",
+        "Description â€“ Lang 2",
+        "manufacturerAID",
+        "EAN",
+        "DisplayOnSite",
+        "AllowPurchaseOnSite",
+        "ShowPriceOnSite",
+        "IsVirtualOnSite",
+        "localStockCheckerOnSite",
+        "CanGiftWrapOnSite",
+        "HomeDeliveryAvailableonsite",
+        "CollectInStoreAvailableonsite",
+        "EnablePaypalCreditOnSite",
+        "EnablePaypalExpressOnSite",
+        "EnableKlarnaOnSite",
+        "Use Png Image Format [default=False]",
+        "Exclude From Free Text Search [default=False]",
+        "See More Styles - Associated Product List â€“ Append",
+        "You May Also Like - Associated Product List â€“ Append",
+        "Page Title",
+        "Variant Child Type",
+        "Click and collect restricted?",
+        "Click and collect allowed stores",
+        "MPN Hidden?",
+        "Measurements",
+        "Meta Keywords",
+        "Special Brand Field 1",
+        "Special Brand Field 2",
+        "Special Brand Field 3",
+        "Special Brand Description",
+        "Unit [default=EA]",
+        "Product Type",
+        "Store Stock Exclude",
+        "Published Date",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/Description/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductDescriptionLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductDescriptionLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Description",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Site Settings/Remove/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "syncToSite(uid)[mode=remove]",
+          "purchaseOnSite(uid)[mode=remove]",
+          "priceVisibleOnSite(uid)[mode=remove]",
+          "virtualStockOnSite(uid)[mode=remove]",
+          "giftWrapOnSite(uid)[mode=remove]",
+          "localStockCheckerVisibleOnSite(uid)[mode=remove]",
+          "homeDeliveryAvailableOnSite(uid)[mode=remove]",
+          "clickAndCollectAvailableOnSite(uid)[mode=remove]",
+          "enablePaypalCreditOnSite(uid)[mode=remove]",
+          "enablePaypalExpressOnSite(uid)[mode=remove]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductSiteSettingsRemoveLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductSiteSettingsRemoveLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Display On Site – Remove",
+        "Allow Purchase On Site – Remove",
+        "Show Price On Site – Remove",
+        "Is Virtual On Site – Remove",
+        "Can Gift Wrap On Site – Remove",
+        "Show Local Stock Checker On Site – Remove",
+        "Home Delivery Available on site – Remove",
+        "Collect In Store Available on site – Remove",
+        "Enable Paypal Credit On Site – Remove",
+        "Enable Paypal Express On Site – Remove"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Site Settings/Append/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "syncToSite(uid)[mode=append]",
+          "purchaseOnSite(uid)[mode=append]",
+          "priceVisibleOnSite(uid)[mode=append]",
+          "virtualStockOnSite(uid)[mode=append]",
+          "giftWrapOnSite(uid)[mode=append]",
+          "localStockCheckerVisibleOnSite(uid)[mode=append]",
+          "homeDeliveryAvailableOnSite(uid)[mode=append]",
+          "clickAndCollectAvailableOnSite(uid)[mode=append]",
+          "enablePaypalCreditOnSite(uid)[mode=append]",
+          "enablePaypalExpressOnSite(uid)[mode=append]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductSiteSettingsAppendLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductSiteSettingsAppendLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Display On Site – Append",
+        "Allow Purchase On Site – Append",
+        "Show Price On Site – Append",
+        "Is Virtual On Site – Append",
+        "Can Gift Wrap On Site – Append",
+        "Show Local Stock Checker On Site – Append",
+        "Home Delivery Available on site – Append",
+        "Collect In Store Available on site – Append",
+        "Enable Paypal Credit On Site – Append",
+        "Enable Paypal Express On Site – Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Product Type/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "productType(code)",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductTypeLoadsheet.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductTypeLoadsheet.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Product Type",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Metadata/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "metaDescription[lang=$lang]",
+          "metaDescription[lang=$lang2]",
+          "metaKeywords[lang=$lang]",
+          "metaKeywords[lang=$lang2]",
+          "pageTitle[lang=$lang]",
+          "pageTitle[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "Metadata.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "Metadata.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Meta Description UK",
+        "Meta Description US",
+        "Meta Keywords UK",
+        "Meta Keywords US",
+        "Page Title UK",
+        "Page Title US",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Metadata/MetaKeywords+PageTitle/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "metaKeywords[lang=$lang]",
+          "metaKeywords[lang=$lang2]",
+          "pageTitle[lang=$lang]",
+          "pageTitle[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MetaKeywordsPageTitle.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MetaKeywordsPageTitle.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Meta Description UK",
+        "Meta Description US",
+        "Meta Keywords UK",
+        "Meta Keywords US",
+        "Page Title UK",
+        "Page Title US",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Metadata/MetaPageTitle/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "pageTitle[lang=$lang]",
+          "pageTitle[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MetaPageTitle.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MetaPageTitle.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Meta Description UK",
+        "Meta Description US",
+        "Meta Keywords UK",
+        "Meta Keywords US",
+        "Page Title UK",
+        "Page Title US",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Metadata/MetaKeywordsOnly/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "metaKeywords[lang=$lang]",
+          "metaKeywords[lang=$lang2]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "MetaKeywords.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "MetaKeywords.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Meta Description UK",
+        "Meta Description US",
+        "Meta Keywords UK",
+        "Meta Keywords US",
+        "Page Title UK",
+        "Page Title US",
+        "Catalogue Version (Leave Blank)",
+        "Approved [default='unapproved']"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/Name.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "name(uid)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/VirtualExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "virtualStockOnSite(uid)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/saploaded.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "pageTitle(uid)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/ImageCount.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "virtualStockOnSite(uid)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/seeMoreSylesExport.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "seeMoreStylesRef(code,$catalogVersion)[collection-delimiter='|']"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/PageTitle.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "$catalogVersion",
+          "code[unique=true]",
+          "pageTitle(uid)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductFinanceExclusions.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "excludedFromFinanceProviders(code)",
+          "excludedFromFinancePlans(code)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductDescriptionOnly - Copy.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "description[lang=en]",
+          "description[lang=en_US]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductExportSKUOnly.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductExportDescription,ManufacturerName.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "description[lang=en]",
+          "description[lang=en_US]",
+          "manufacturerName"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductDescriptionOnly.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "description[lang=en]",
+          "description[lang=en_US]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductExportSKUApproved.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Products/Exports/Full Product Export/ProductExportMasterLoadsheet.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "manufacturerName",
+          "name[lang=$lang]",
+          "name[lang=$lang2]",
+          "description[lang=$lang]",
+          "description[lang=$lang2]",
+          "manufacturerAID",
+          "EAN",
+          "syncToSite(uid)",
+          "purchaseOnSite(uid)",
+          "priceVisibleOnSite(uid)",
+          "virtualStockOnSite(uid)",
+          "giftWrapOnSite(uid)",
+          "homeDeliveryAvailableOnSite(uid)",
+          "clickAndCollectAvailableOnSite(uid)",
+          "enablePaypalCreditOnSite(uid)",
+          "enablePaypalExpressOnSite(uid)",
+          "usePngImageFormat",
+          "pageTitle[lang=$lang]",
+          "varianttype(code)",
+          "measurements[lang=$lang]",
+          "metaDescription[lang=$lang]",
+          "metaKeywords[lang=$lang]",
+          "specialBrandField1[lang=$lang]",
+          "specialBrandField2[lang=$lang]",
+          "specialBrandField3[lang=$lang]",
+          "specialBrandDescription[lang=$lang]",
+          "productType(code)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "lang": "en",
+      "lang2": "en_US",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]",
+      "approved": "approvalstatus(code)[default='unapproved']",
+      "unit": "unit(code)[default=EA]"
+    }
+  },
+  {
+    "relPath": "Products/maxOrderQuantity/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "maxOrderQuantity",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "maxOrderQuantity.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "maxOrderQuantity.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Max Order Quantity",
+        "Catalogue Version (Leave Blank)"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Facets/export/types/ProductFacetType.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetType",
+        "columns": [
+          "code[unique=true]",
+          "name [lang=en]",
+          "name [lang=en_US]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Facets/export/values/ProductFacetValue.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetValue",
+        "columns": [
+          "code[unique=true]",
+          "value [lang=en]",
+          "value [lang=en_US]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {}
+  },
+  {
+    "relPath": "Facets/import/TypeAndValue/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetType",
+        "columns": [
+          "code[unique=true]",
+          "name[lang=$lang]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetValue",
+        "columns": [
+          "code[unique=true]",
+          "value[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetTypes.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      },
+      {
+        "csvFile": "ProductFacetValue.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetTypes.csv": [
+        "Type (Leave Blank) ",
+        "Facet Code",
+        "Facet Name"
+      ],
+      "ProductFacetValue.csv": [
+        "Type (Leave Blank) ",
+        "Attribute Code",
+        "Attribute Value"
+      ]
+    },
+    "macros": {
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Facets/import/Values Only/uk/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetValue",
+        "columns": [
+          "code[unique=true]",
+          "value[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetValue.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetValue.csv": [
+        "Type (Leave Blank) ",
+        "Attribute Code",
+        "Attribute Value"
+      ]
+    },
+    "macros": {
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Facets/import/Values Only/us/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetValue",
+        "columns": [
+          "code[unique=true]",
+          "value[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetValue.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetValue.csv": [
+        "Type (Leave Blank) ",
+        "Attribute Code",
+        "Attribute Value"
+      ]
+    },
+    "macros": {
+      "lang": "en_US"
+    }
+  },
+  {
+    "relPath": "Facets/import/Types Only/uk/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetType",
+        "columns": [
+          "code[unique=true]",
+          "name[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetTypes.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetTypes.csv": [
+        "Type (Leave Blank) ",
+        "Facet Code",
+        "Facet Name"
+      ]
+    },
+    "macros": {
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Facets/import/Types Only/us/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "ProductFacetType",
+        "columns": [
+          "code[unique=true]",
+          "name[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductFacetTypes.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductFacetTypes.csv": [
+        "Type (Leave Blank) ",
+        "Facet Code",
+        "Facet Name"
+      ]
+    },
+    "macros": {
+      "lang": "en_US"
+    }
+  },
+  {
+    "relPath": "Solr/solrFacets.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SolrIndexedProperty",
+        "columns": [
+          "solrIndexedType(identifier)[unique=true]",
+          "name[unique=true]",
+          "displayName[lang=$indexLanguages]",
+          "facet[default=true]",
+          "type(code)",
+          "facetSort(code)",
+          "priority",
+          "facetType(code)",
+          "currency[default=false]",
+          "localized[default=false]",
+          "multiValue[default=true]",
+          "useForSpellchecking[default=false]",
+          "useForAutocomplete[default=false]",
+          "fieldValueProvider",
+          "valueProviderParameter",
+          "ftsPhraseQuery[default=false]",
+          "ftsPhraseQueryBoost",
+          "ftsQuery[default=false]",
+          "ftsQueryBoost",
+          "ftsFuzzyQuery[default=false]",
+          "ftsFuzzyQueryBoost",
+          "ftsWildcardQuery[default=false]",
+          "ftsWildcardQueryType(code)[default=POSTFIX]",
+          "ftsWildcardQueryBoost",
+          "ftsWildcardQueryMinTermLength"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SolrSearchQueryProperty",
+        "columns": [
+          "indexedProperty(name, solrIndexedType(identifier))[unique=true]",
+          "facet[default=true]",
+          "facetType(code)",
+          "priority",
+          "facetDisplayNameProvider",
+          "facetSortProvider",
+          "facetTopValuesProvider",
+          "includeInResponse[default=true]",
+          "searchQueryTemplate(name, indexedType(identifier))[unique=true][default=DEFAULT:$solrIndexedType]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "indexLanguages": "en",
+      "solrIndexedType": "aurumBaseProductType"
+    }
+  },
+  {
+    "relPath": "Solr/Exclude from Solr/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "excludeFromFreeTextSearch",
+          "$supercategories",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ExcludeFromSolr.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ExcludeFromSolr.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Exclude From Free Text Search"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Stores/new-store.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Address",
+        "columns": [
+          "&addrID",
+          "streetnumber",
+          "streetname",
+          "district",
+          "town",
+          "postalcode",
+          "$country",
+          "phone1",
+          "fax",
+          "email",
+          "appartment",
+          "company",
+          "lastname",
+          "firstname",
+          "owner(PointOfService.name)[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "OpeningSchedule",
+        "columns": [
+          "code[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "WeekdayOpeningDay",
+        "columns": [
+          "dayOfWeek(code,itemtype(code))[unique=true]",
+          "openingTime[dateformat=hh:mm]",
+          "closingTime[dateFormat=$StandardDateFormat]",
+          "openingSchedule(code)[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "displayName",
+          "$posType",
+          "address(&addrID)",
+          "latitude",
+          "longitude",
+          "geocodeTimestamp[dateformat=dd-MM-yyyy]",
+          "isClickAndCollectEnabled",
+          "isReserveAndCollectEnabled",
+          "storeManager",
+          "openingSchedule(code)"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "StoreDescription",
+        "columns": [
+          "code[unique=true]",
+          "facilities[lang=$lang]",
+          "managerQuote[lang=$lang]",
+          "features(key(isocode[lang=$lang]),value)[map-delimiter=|]"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "storeDescription(code)",
+          "baseStore(uid)[mode=append]"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "storeIpAddress",
+          "$baseStore"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Media",
+        "columns": [
+          "mediaFormat(qualifier)",
+          "code[unique=true]",
+          "URL",
+          "mime[default='image/jpeg']",
+          "$contentCV"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "aurumStoreImage(code, $contentCV)"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "StoreBrand",
+        "columns": [
+          "code[unique=true]",
+          "name",
+          "image(code, $contentCV)",
+          "linkText[unique=true]",
+          "linkURL"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "brands(code)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "lang": "en",
+      "storeUid": "aurumBaseStore",
+      "countryCode": "GB",
+      "contentCatalog": "aurumContentCatalog",
+      "baseStore": "basestore(uid)[default=$storeUid]",
+      "posType": "type(code)[default=STORE]",
+      "country": "country(isocode)[default=$countryCode]",
+      "StandardDateFormat": "hh:mm",
+      "contentCV": "catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Stores/new-store-example.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Address",
+        "columns": [
+          "&addrID",
+          "streetnumber",
+          "streetname",
+          "district",
+          "town",
+          "postalcode",
+          "$country",
+          "phone1",
+          "fax",
+          "email",
+          "appartment",
+          "company",
+          "lastname",
+          "firstname",
+          "owner(PointOfService.name)[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "OpeningSchedule",
+        "columns": [
+          "code[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "WeekdayOpeningDay",
+        "columns": [
+          "dayOfWeek(code,itemtype(code))[unique=true]",
+          "openingTime[dateformat=hh:mm]",
+          "closingTime[dateFormat=$StandardDateFormat]",
+          "openingSchedule(code)[unique=true]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "displayName",
+          "$posType",
+          "address(&addrID)",
+          "latitude",
+          "longitude",
+          "geocodeTimestamp[dateformat=dd-MM-yyyy]",
+          "isClickAndCollectEnabled",
+          "isReserveAndCollectEnabled",
+          "storeManager",
+          "openingSchedule(code)"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "StoreDescription",
+        "columns": [
+          "code[unique=true]",
+          "facilities[lang=$lang]",
+          "managerQuote[lang=$lang]",
+          "features(key(isocode[lang=$lang]),value)[map-delimiter=|]"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "storeDescription(code)",
+          "baseStore(uid)[mode=append]"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "storeIpAddress",
+          "$baseStore"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Media",
+        "columns": [
+          "mediaFormat(qualifier)",
+          "code[unique=true]",
+          "URL",
+          "mime[default='image/jpeg']",
+          "$contentCV"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "aurumStoreImage(code, $contentCV)"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "StoreBrand",
+        "columns": [
+          "code[unique=true]",
+          "name",
+          "image(code, $contentCV)",
+          "linkText[unique=true]",
+          "linkURL"
+        ]
+      },
+      {
+        "op": "UPDATE",
+        "itemType": "AurumPointOfService",
+        "columns": [
+          "name[unique=true]",
+          "brands(code)"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "lang": "en",
+      "storeUid": "aurumBaseStore",
+      "countryCode": "GB",
+      "contentCatalog": "aurumContentCatalog",
+      "baseStore": "basestore(uid)[default=$storeUid]",
+      "posType": "type(code)[default=STORE]",
+      "country": "country(isocode)[default=$countryCode]",
+      "StandardDateFormat": "hh:mm",
+      "contentCV": "catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]"
+    }
+  },
+  {
+    "relPath": "Categories/categoryDescription.txt",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "Category",
+        "columns": [
+          "code[unique=true]",
+          "$catalogVersion",
+          "description[lang=$lang]"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "catalogVersion": "catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true,default='Goldsmiths_UK_ProductCatalog:Staged']",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Categories/CategoryMetaDescription/importScript.impex",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "Category",
+        "columns": [
+          "code[unique=true]",
+          "metaDescription[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "CategoryMetaDescription.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "CategoryMetaDescription.csv": [
+        "Type (Leave Blank)",
+        "Category Identifier",
+        "metaDescription"
+      ]
+    },
+    "macros": {
+      "catalogVersion": "catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true,default='Goldsmiths_UK_ProductCatalog:Staged']",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Categories/Remove/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductCategories.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductCategories.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories � Remove"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=remove]"
+    }
+  },
+  {
+    "relPath": "Categories/Site Category Attributes/siteCategoryAttributes.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "SiteCategoryAttribute",
+        "columns": [
+          "code[unique=true]",
+          "site(uid)",
+          "pageTitle[lang=$lang]"
+        ]
+      },
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Category",
+        "columns": [
+          "code[unique=true]",
+          "siteCategoryAttributes(code)[mode=append]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [],
+    "csvHeaderRows": {},
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Categories/Category Meta Data/CategoryMetaDescription/importScript.impex",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "Category",
+        "columns": [
+          "code[unique=true]",
+          "metaDescription[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "CategoryMetaDescription.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "CategoryMetaDescription.csv": [
+        "Type (Leave Blank)",
+        "CODE",
+        "DESCRIPTION"
+      ]
+    },
+    "macros": {
+      "catalogVersion": "catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true,default='Goldsmiths_UK_ProductCatalog:Staged']",
+      "lang": "en"
+    }
+  },
+  {
+    "relPath": "Categories/Append/importScript.impex",
+    "headers": [
+      {
+        "op": "INSERT_UPDATE",
+        "itemType": "Product",
+        "columns": [
+          "code[unique=true]",
+          "$supercategories",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "ProductCategories.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "ProductCategories.csv": [
+        "Type (Leave Blank)",
+        "SKU",
+        "Categories � Append"
+      ]
+    },
+    "macros": {
+      "productCatalog": "masterProductCatalog",
+      "catalogVersion": "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]",
+      "supercategories": "supercategories(code, $catalogVersion)[mode=append]"
+    }
+  },
+  {
+    "relPath": "Categories/Category Descriptions/CategoryDescription/importScript.impex",
+    "headers": [
+      {
+        "op": "UPDATE",
+        "itemType": "Category",
+        "columns": [
+          "code[unique=true]",
+          "description[lang=$lang]",
+          "$catalogVersion"
+        ]
+      }
+    ],
+    "externalCsvCalls": [
+      {
+        "csvFile": "CategoryDescription.csv",
+        "encoding": "UTF-8",
+        "delimiter": ",",
+        "linesToSkip": 1,
+        "columnOffset": 0
+      }
+    ],
+    "csvHeaderRows": {
+      "CategoryDescription.csv": [
+        "Type (Leave Blank)",
+        "Category Identifier",
+        "Description"
+      ]
+    },
+    "macros": {
+      "catalogVersion": "catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true,default='Goldsmiths_UK_ProductCatalog:Staged']",
+      "lang": "en"
+    }
+  }
+]
