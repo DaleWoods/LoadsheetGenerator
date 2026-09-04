@@ -112,6 +112,31 @@ describe('the checks that stop a broken zip', () => {
     expect(short.find((f) => f.code === 'csv.rowWidth')).toMatchObject({ severity: 'error' });
   });
 
+  it('refuses a row that is short rather than filling in the gap', () => {
+    // A padded row looks correct to every check downstream, so the missing
+    // value would be decided silently. Written as it came in, it is caught.
+    const out = generateLoadSheet(flagSpec([['17331268']]), context, at);
+    expect(out.findings.find((f) => f.code === 'csv.rowWidth')).toMatchObject({ severity: 'error', row: 2 });
+    expect(out.packageable).toBe(false);
+  });
+
+  it('refuses a row with more values than there are columns', () => {
+    const out = generateLoadSheet(flagSpec([['17331268', 'TRUE', '', 'extra']]), context, at);
+    expect(out.findings.find((f) => f.code === 'csv.rowWidth')).toMatchObject({ severity: 'error' });
+    expect(out.packageable).toBe(false);
+  });
+
+  it('notices a value in a column that is always left blank', () => {
+    // A row that has slipped a column puts a SKU where the catalogue version
+    // goes. The column is legitimately fillable, so this is a warning, not a
+    // refusal - but it is the shape of the bug worth pointing at.
+    const out = generateLoadSheet(flagSpec([['17331268', 'TRUE', '17331097']]), context, at);
+    expect(out.findings.find((f) => f.code === 'csv.blankColumnValue')).toMatchObject({
+      severity: 'warning',
+      message: expect.stringContaining('slipped a column'),
+    });
+  });
+
   it('catches the same field ticked twice', () => {
     const out = generateLoadSheet(
       composeSpec(

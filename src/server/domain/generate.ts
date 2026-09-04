@@ -115,16 +115,29 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
 function writeBlockCsv(block: ResolvedBlock): GeneratedFile | undefined {
   if (!block.csv) return undefined;
   const prefix = block.csv.layout.typeColumn ? [''] : [];
-  const rows = block.rows.map((row) => [
-    ...prefix,
-    ...block.columns.map((column, index) => {
-      const value = row[index] ?? '';
-      // Booleans are written in capitals whatever the user typed; a value that
-      // is not a boolean at all is left alone for the validator to report.
-      if (column.shape.type !== 'boolean') return value;
-      return normaliseBoolean(value) ?? value;
-    }),
-  ]);
+  // A row is filled out only as far as the trailing macro columns the app added
+  // itself - `$catalogVersion` and friends, which are blank in every WOSG CSV.
+  // A row short of an actual field is left short, because padding it would
+  // decide which value is missing and the row would then look correct to every
+  // check downstream; left as it is, the validator reports it and the zip is
+  // refused.
+  const rows = block.rows.map((row) => {
+    const padded = [...row];
+    for (let index = row.length; index < block.columns.length; index++) {
+      if (block.columns[index]!.column.kind !== 'macro') break;
+      padded.push('');
+    }
+    return [
+      ...prefix,
+      ...padded.map((value, index) => {
+        const column = block.columns[index];
+        // Booleans are written in capitals whatever the user typed; a value
+        // that is not a boolean at all is left alone for the validator to report.
+        if (!column || column.shape.type !== 'boolean') return value;
+        return normaliseBoolean(value) ?? value;
+      }),
+    ];
+  });
   return {
     filename: block.csv.file,
     content: writeCsv([block.csv.headerRow, ...rows], block.csv.delimiter),

@@ -294,6 +294,20 @@ function validateCsvBlock(
           row: rowNumber,
         });
       }
+      // A value in a column WOSG heads "(Leave Blank)" is almost always a row
+      // that has slipped a column, which is the failure this app exists to
+      // stop. Not an error - the column may legitimately be filled in - but
+      // worth a look before uploading.
+      if (/leave blank/i.test(column.label) && value.trim() !== '') {
+        add({
+          severity: 'warning',
+          code: 'csv.blankColumnValue',
+          message: `${csv.file} row ${rowNumber} has ${JSON.stringify(value)} in "${column.label}", which is normally left empty. Check the row has not slipped a column.`,
+          block: blockIndex,
+          column: columnIndex,
+          row: rowNumber,
+        });
+      }
       if (column.shape.type === 'boolean' && normaliseBoolean(value) === null) {
         add({
           severity: column.boolean === 'declared' ? 'error' : 'warning',

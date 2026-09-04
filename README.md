@@ -12,17 +12,21 @@ in `src/server/library/loadsheet-extraction-raw.json` and digested for humans in
 ## Where things are
 
 ```
-src/shared/      types and pure functions both halves use
+src/shared/      types and pure functions both halves use, browser included
   impex.ts       reading and writing ImpEx column expressions
   library.ts     what a library record is
   spec.ts        the specification object both input modes produce
   fieldTypes.ts  what kind of value a column expects
   csv.ts         CSV reading and writing
+  paste.ts       lining pasted rows up with the columns
 src/server/
   library/       the supplied extraction, and turning it into library records
-  domain/        catalogue, template matching, house style, resolve, generate, validate
-  services/      the library store
+  domain/        catalogue, template matching, house style, resolve, generate,
+                 validate, package
+  services/      the library store, and one request to one load sheet
+  routes/        the HTTP API
   db/            schema, migrations, seeding
+src/web/         the field picker (Mode B)
 ```
 
 ## The shape of it
@@ -42,11 +46,12 @@ fly; the app never hands back a stored file.
 ## Running it
 
 ```
-npm install
+npm install --legacy-peer-deps
 npm run seed          # creates the SQLite database and loads the 109 records
-npm run dev
+npm run dev           # the API on :3000 (it seeds itself on first boot)
+npm run dev:web       # the UI on :5173, proxying /api to :3000
 npm test
-npm run build
+npm run build         # server to dist/, UI to dist-web/, then `npm start`
 ```
 
 Defaults to SQLite at `data/loadsheets.db`. Set `DB_DRIVER=postgres` and
