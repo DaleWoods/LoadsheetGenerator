@@ -4,6 +4,7 @@ import type { Db } from '../db/index.js';
 import { NotPackageableError, packageLoadSheet, unverifiedColumns } from '../domain/packageSheet.js';
 import { isResolverConfigured, type Resolver } from '../integrations/anthropic.js';
 import { learnFromSheet } from '../services/libraryLearn.js';
+import { getEntry, listHistory, record } from '../services/historyService.js';
 import { resolveDescription } from '../services/resolveService.js';
 import { generateFromRequest, sheetRequestSchema } from '../services/sheetService.js';
 
@@ -33,6 +34,22 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
     res.json(resolution);
   });
 
+  router.get('/history', async (req, res) => {
+    const mine = req.query.mine === 'true';
+    res.json({
+      history: await listHistory(db, mine && req.user ? { username: req.user.username } : {}),
+    });
+  });
+
+  router.get('/history/:id', async (req, res) => {
+    const entry = await getEntry(db, req.params.id ?? '');
+    if (!entry) {
+      res.status(404).json({ error: 'No such load sheet in the history.' });
+      return;
+    }
+    res.json({ entry });
+  });
+
   router.post('/learn', async (req, res) => {
     const parsed = sheetRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -40,6 +57,18 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
       return;
     }
     const result = await learnFromSheet(db, parsed.data);
+    if (req.user) {
+      const sheet = await generateFromRequest(db, parsed.data);
+      await record(db, {
+        request: parsed.data,
+        summary: `Saved to the library${result.learned.length > 0 ? `: ${result.learned.join(', ')}` : ''}`,
+        filename: sheet.impex.filename,
+        direction: sheet.resolved.direction,
+        rowCount: sheet.resolved.blocks[0]?.rows.length ?? 0,
+        outcome: 'learned',
+        user: req.user,
+      });
+    }
     res.json(result);
   });
 
@@ -84,6 +113,19 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
     const sheet = await generateFromRequest(db, parsed.data);
     try {
       const bundle = await packageLoadSheet(sheet, { confirmedUnverified: parsed.data.confirmedUnverified });
+      // Recorded here rather than on preview: a preview happens on every
+      // keystroke, a download is somebody deciding to use the thing (§6.7).
+      if (req.user) {
+        await record(db, {
+          request: parsed.data,
+          summary: sheet.summary,
+          filename: bundle.filename,
+          direction: sheet.resolved.direction,
+          rowCount: sheet.resolved.blocks[0]?.rows.length ?? 0,
+          outcome: 'downloaded',
+          user: req.user,
+        });
+      }
       res.setHeader('Content-Type', bundle.contentType);
       res.setHeader('Content-Disposition', `attachment; filename="${bundle.filename}"`);
       res.send(bundle.body);

@@ -13,6 +13,8 @@ function answering(resolution: Partial<Resolution>): Resolver {
     resolution: {
       itemType: 'Product',
       name: 'Test Sheet',
+      direction: 'import',
+      exportSelection: null,
       operation: 'INSERT_UPDATE',
       fields: [],
       rows: null,
@@ -158,6 +160,37 @@ describe('what the app does with the model answer', () => {
     const sheet = await generateFromRequest(db, resolution.request!);
     expect(sheet.csvs[0]!.content).toContain(',17331268,TRUE,');
     expect(resolution.notes.join(' ')).toContain('Took 2 rows');
+  });
+
+  it('resolves an export, with the records it should pull', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'Export the roundel for every product whose code starts 173',
+      answering({
+        name: 'Roundel Export',
+        direction: 'export',
+        exportSelection: { kind: 'skuWildcard', codes: [], pattern: '173%', attribute: '' },
+        fields: [field('akamaiRoundel')],
+      }),
+    );
+    expect(resolution.request).toMatchObject({
+      direction: 'export',
+      export: { kind: 'skuWildcard', pattern: '173%' },
+    });
+
+    const sheet = await generateFromRequest(db, resolution.request!);
+    expect(sheet.impex.content).toContain("{i:code} LIKE '173%'");
+    expect(sheet.csvs).toEqual([]);
+  });
+
+  it('asks which records an export should pull rather than exporting everything', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'Export the roundels',
+      answering({ direction: 'export', exportSelection: null, fields: [field('akamaiRoundel')] }),
+    );
+    expect(resolution.request).toBeNull();
+    expect(resolution.clarification).toContain('Which records');
   });
 
   it('asks when nothing usable came back', async () => {

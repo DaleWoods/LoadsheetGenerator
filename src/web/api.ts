@@ -77,6 +77,13 @@ export interface Preview {
   columns?: PreviewColumn[];
 }
 
+export interface ExportSelectionRequest {
+  kind: 'skuList' | 'skuWildcard' | 'attributeWildcard';
+  codes?: string[];
+  pattern?: string;
+  attribute?: string;
+}
+
 export interface SheetRequest {
   name: string;
   itemType: string;
@@ -84,6 +91,8 @@ export interface SheetRequest {
   op?: string;
   intent?: string;
   rows?: string[][];
+  direction?: 'import' | 'export';
+  export?: ExportSelectionRequest;
   /** The user has ticked to say they checked the unverified attributes exist. */
   confirmedUnverified?: boolean;
 }
@@ -225,6 +234,27 @@ export async function learnSheet(request: SheetRequest): Promise<{ learned: stri
       body: JSON.stringify(request),
     }),
   );
+}
+
+export interface HistoryEntry {
+  id: string;
+  createdAt: string;
+  username: string;
+  name: string;
+  itemType: string;
+  direction: string;
+  summary: string;
+  filename: string;
+  rowCount: number;
+  outcome: 'downloaded' | 'learned';
+  request: SheetRequest;
+}
+
+export async function fetchHistory(mine = false): Promise<HistoryEntry[]> {
+  const body = await json<{ history: HistoryEntry[] }>(
+    await fetch(`/api/sheets/history${mine ? '?mine=true' : ''}`),
+  );
+  return body.history;
 }
 
 export interface DownloadRefusal {

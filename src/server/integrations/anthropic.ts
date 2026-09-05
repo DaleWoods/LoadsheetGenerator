@@ -31,6 +31,26 @@ import { env } from '../config/env.js';
 const resolutionSchema = z.object({
   itemType: z.string().describe('The item type to load, exactly as spelled in the catalogue.'),
   name: z.string().describe('A short name for this load sheet, in title case, e.g. "Editors Pick".'),
+  direction: z
+    .enum(['import', 'export'])
+    .describe(
+      'import to load data into SAP Commerce, export to pull data out of it as a CSV. A request that says "export", "pull out", "get a list of" or similar is an export.',
+    ),
+  exportSelection: z
+    .object({
+      kind: z
+        .enum(['skuList', 'skuWildcard', 'attributeWildcard'])
+        .describe(
+          'skuList for an explicit list of codes, skuWildcard for a pattern on the code, attributeWildcard for a pattern on some other attribute (or everything that has one at all).',
+        ),
+      codes: z.array(z.string()).describe('For skuList: the codes named in the request. Empty otherwise. Never invented.'),
+      pattern: z
+        .string()
+        .describe('For the wildcard kinds: the SQL LIKE pattern, e.g. "173%". Use "%" to mean any value at all. Empty for skuList.'),
+      attribute: z.string().describe('For attributeWildcard: the attribute to match on. Empty otherwise.'),
+    })
+    .nullable()
+    .describe('How an export picks its rows. Null for an import.'),
   operation: z
     .enum(['INSERT_UPDATE', 'UPDATE'])
     .describe(
@@ -83,6 +103,7 @@ Work from the catalogue you are given, which is everything the app knows:
 - Do not add fields the request did not ask for. The key column is written for you - never include it.
 - Only fill in rows when the request contains the actual values. A request that says "for these SKUs: 17331268, 17331097" has rows; one that says "we will paste the SKUs in later" does not.
 - Booleans are written TRUE and FALSE.
+- An export pulls data out rather than loading it in: it has no rows going in, and it needs to say which records to pull - a list of codes the request names, a code wildcard, or a wildcard on another attribute. The columns are still chosen the same way.
 - Ask a clarifying question only when you genuinely cannot resolve the request - not to confirm something you can already work out.`;
 
 export interface ResolverInput {

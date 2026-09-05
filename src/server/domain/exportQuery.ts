@@ -1,0 +1,182 @@
+/**
+ * The query an export script runs (§6.5).
+ *
+ * Three patterns, all present in WOSG's own export folders: an explicit list of
+ * product codes, a code wildcard, and a wildcard on some other attribute (the
+ * Roundel and Special Brand wildcard exports).
+ *
+ * A caveat worth keeping in view: the supplied extraction captured every export
+ * script's header line but not its `setTargetFile` / `exportItems` lines, so the
+ * mechanics here are written from the ImpEx documentation rather than copied
+ * from a script WOSG has run. That is why a generated export says so in its own
+ * comments and in the findings - the same treatment an unverified attribute
+ * gets. Replace this with their wording once a real export script is to hand;
+ * the header line and the column order above it are already theirs.
+ */
+
+import type { ExportSelection } from '../../shared/spec.js';
+
+/** FlexibleSearch takes doubled single quotes, and a value carrying one is refused rather than escaped away. */
+export function quoteValue(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
+}
+
+export interface CatalogVersionValues {
+  catalogId: string;
+  version: string;
+}
+
+export interface QueryContext {
+  itemType: string;
+  /**
+   * The catalog and version to restrict to, as values. An export that does not
+   * restrict returns the Staged and Online rows both, which looks like
+   * duplicates in the CSV.
+   *
+   * Values, not the `$catalogVersion` macro: that macro expands to a column
+   * definition - `catalogversion(catalog(id[...]),version[...])[unique=true]` -
+   * and ImpEx substitutes macros everywhere in the file, so writing it inside
+   * the query would paste a column definition into the middle of the SQL.
+   */
+  catalogVersion?: CatalogVersionValues;
+}
+
+/**
+ * Read the catalog and version out of the `$catalogVersion` macro the script
+ * declares, so the query can name them as values.
+ *
+ * `catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])`
+ * gives masterProductCatalog and Staged; the category scripts hard-code a site
+ * catalog in the same place. Returns null when it cannot be read, and the
+ * caller then leaves the restriction out and says so rather than guessing.
+ */
+export function catalogVersionValues(macros: [string, string][]): CatalogVersionValues | null {
+  const entry = macros.find(([name]) => /catalogversion/i.test(name));
+  if (!entry) return null;
+  const definition = entry[1];
+
+  const unquote = (value: string): string => value.trim().replace(/^['"]|['"]$/g, '');
+  const version = /version\s*\[\s*default\s*=\s*([^\]]+)\]/i.exec(definition)?.[1];
+  const catalog = /\bid\s*\[\s*default\s*=\s*([^\]]+)\]/i.exec(definition)?.[1];
+  if (!version || !catalog) return null;
+
+  const catalogValue = unquote(catalog);
+  const catalogId = catalogValue.startsWith('$')
+    ? macros.find(([name]) => name === catalogValue.slice(1))?.[1]?.trim()
+    : catalogValue;
+  if (!catalogId || catalogId.startsWith('$')) return null;
+
+  return { catalogId, version: unquote(version) };
+}
+
+export interface BuiltQuery {
+  query: string;
+  /** What the query does, in words, for the summary panel. */
+  description: string;
+}
+
+function catalogVersionClause(alias: string, context: QueryContext): string | null {
+  const values = context.catalogVersion;
+  if (!values) return null;
+  return (
+    `{${alias}:catalogVersion} IN ({{ SELECT {cv:pk} FROM {CatalogVersion AS cv}, {Catalog AS c} ` +
+    `WHERE {cv:catalog} = {c:pk} AND {c:id} = ${quoteValue(values.catalogId)} ` +
+    `AND {cv:version} = ${quoteValue(values.version)} }})`
+  );
+}
+
+export function buildExportQuery(selection: ExportSelection, context: QueryContext): BuiltQuery {
+  const alias = 'i';
+  const from = `{${context.itemType} AS ${alias}}`;
+  const conditions: string[] = [];
+  let description: string;
+
+  switch (selection.kind) {
+    case 'skuList': {
+      const codes = (selection.codes ?? []).map((code) => code.trim()).filter((code) => code.length > 0);
+      conditions.push(`{${alias}:code} IN (${codes.map(quoteValue).join(', ')})`);
+      description = `the ${codes.length} code${codes.length === 1 ? '' : 's'} listed`;
+      break;
+    }
+    case 'skuWildcard': {
+      conditions.push(`{${alias}:code} LIKE ${quoteValue(selection.pattern ?? '')}`);
+      description = `every code matching ${selection.pattern}`;
+      break;
+    }
+    case 'attributeWildcard': {
+      const attribute = selection.attribute ?? '';
+      const pattern = selection.pattern ?? '';
+      // An empty pattern means "has any value at all", which is how the Roundel
+      // wildcard export is used: pull every product that has one.
+      conditions.push(
+        pattern === '' || pattern === '%'
+          ? `{${alias}:${attribute}} IS NOT NULL`
+          : `{${alias}:${attribute}} LIKE ${quoteValue(pattern)}`,
+      );
+      description =
+        pattern === '' || pattern === '%'
+          ? `every record that has a ${attribute}`
+          : `every record whose ${attribute} matches ${pattern}`;
+      break;
+    }
+  }
+
+  const catalogVersion = catalogVersionClause(alias, context);
+  if (catalogVersion) conditions.push(catalogVersion);
+
+  return {
+    query: `SELECT {${alias}:pk} FROM ${from} WHERE ${conditions.join(' AND ')}`,
+    description,
+  };
+}
+
+/** What the export writes inside SAP Commerce; the user collects it from HAC afterwards. */
+export function targetFileFor(selection: ExportSelection, fallback: string): string {
+  const named = selection.targetFile?.trim();
+  return named && named.length > 0 ? named : fallback;
+}
+
+export interface SelectionProblem {
+  code: string;
+  message: string;
+}
+
+/** What is missing or unusable about a selection, before anything is written. */
+export function selectionProblems(selection: ExportSelection): SelectionProblem[] {
+  const problems: SelectionProblem[] = [];
+  const carriesQuote = (value: string): boolean => value.includes("'");
+
+  if (selection.kind === 'skuList') {
+    const codes = (selection.codes ?? []).map((code) => code.trim()).filter((code) => code.length > 0);
+    if (codes.length === 0) {
+      problems.push({ code: 'export.noCodes', message: 'An export by list needs at least one code.' });
+    }
+    // Refused rather than escaped: a quote in a product code means the list was
+    // pasted from somewhere that mangled it, and guessing what was meant is how
+    // the wrong rows get exported.
+    const quoted = codes.filter(carriesQuote);
+    if (quoted.length > 0) {
+      problems.push({
+        code: 'export.badCode',
+        message: `${quoted.length} code${quoted.length === 1 ? '' : 's'} contain a quote character. Check what was pasted.`,
+      });
+    }
+  }
+
+  if (selection.kind === 'skuWildcard' && !(selection.pattern ?? '').trim()) {
+    problems.push({
+      code: 'export.noPattern',
+      message: 'An export by wildcard needs a pattern, for example 173% for every code starting 173.',
+    });
+  }
+
+  if (selection.kind === 'attributeWildcard' && !(selection.attribute ?? '').trim()) {
+    problems.push({ code: 'export.noAttribute', message: 'Choose the attribute to match on.' });
+  }
+
+  if (carriesQuote(selection.pattern ?? '')) {
+    problems.push({ code: 'export.badPattern', message: 'A pattern cannot contain a quote character.' });
+  }
+
+  return problems;
+}

@@ -33,7 +33,33 @@ after the sheet has been downloaded.
 
 ## §9b Q3 — export output destination
 
-Open. Reaching stage 4 (export-direction scripts).
+**Settled: generating the script is the whole job.**
+
+An export script writes its CSV inside SAP Commerce when it is run in HAC, and
+with no live connection (§7) the app cannot reach it. So the app names the
+target file in the script and in the summary - which is what somebody needs in
+order to find it - and collecting it is the user's step, like the upload.
+
+Taking the CSV back afterwards was considered and left out: it would mean
+reading a CSV the app did not generate, which §8 puts out of scope for v1.
+
+## The export query mechanics are not from a WOSG script
+
+The supplied extraction captured every export script's header line but not its
+`setTargetFile` / `exportItems` lines, so those are written from the ImpEx
+documentation. Generated exports say so in their own comments and carry an
+`export.mechanicsUnverified` finding, the same treatment an unknown attribute
+gets. The column list and its order *are* WOSG's. Replace
+`domain/exportQuery.ts` with their wording once a real export script is to
+hand.
+
+One thing that had to be got right rather than copied: the catalog version
+restriction names the catalog and version as **values**, read out of the
+script's own `$catalogVersion` macro. Writing `$catalogVersion` into the query
+would have looked reasonable and been nonsense - ImpEx substitutes macros
+everywhere in the file, so it would paste a column definition into the middle
+of the SQL. The validator refuses any export whose query contains a macro
+reference.
 
 ## Mode A resolves to a specification, never to script text
 

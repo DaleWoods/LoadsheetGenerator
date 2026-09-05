@@ -130,6 +130,20 @@ export async function resolveDescription(
   const rows = resolution.rows ?? undefined;
   if (rows && rows.length > 0) notes.push(`Took ${rows.length} row${rows.length === 1 ? '' : 's'} from your description.`);
 
+  // An export needs to say which records to pull, and the app will not invent
+  // that: without it there is nothing to generate but a query over everything.
+  const isExport = resolution.direction === 'export';
+  const selection = resolution.exportSelection;
+  if (isExport && !selection) {
+    return {
+      request: null,
+      fields,
+      summary: resolution.summary,
+      clarification: 'Which records should the export pull - a list of codes, or a pattern to match?',
+      notes,
+    };
+  }
+
   return {
     request: {
       name: resolution.name.trim() || `${itemType} Load Sheet`,
@@ -137,7 +151,18 @@ export async function resolveDescription(
       fields: fields.map((field) => ({ name: field.attribute, ...(field.variant ? { variant: field.variant } : {}) })),
       op: resolution.operation,
       intent: description.trim(),
-      ...(rows && rows.length > 0 ? { rows } : {}),
+      ...(rows && rows.length > 0 && !isExport ? { rows } : {}),
+      ...(isExport && selection
+        ? {
+            direction: 'export' as const,
+            export: {
+              kind: selection.kind,
+              ...(selection.codes.length > 0 ? { codes: selection.codes } : {}),
+              ...(selection.pattern ? { pattern: selection.pattern } : {}),
+              ...(selection.attribute ? { attribute: selection.attribute } : {}),
+            },
+          }
+        : {}),
     },
     fields,
     summary: resolution.summary,

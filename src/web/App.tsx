@@ -14,6 +14,7 @@ import {
 } from './api.js';
 import { ChosenFields } from './ChosenFields.js';
 import { DescribeBox } from './DescribeBox.js';
+import { ExportPanel, parseCodes, type ExportSelection } from './ExportPanel.js';
 import { FieldPicker, type ChosenField } from './FieldPicker.js';
 import { SheetPreview } from './SheetPreview.js';
 import { alignPastedRows } from '../shared/paste.js';
@@ -26,7 +27,10 @@ import { alignPastedRows } from '../shared/paste.js';
  */
 type DataSource = 'template' | 'paste';
 
-export function App(): JSX.Element {
+/** Load data in, or pull it out (§6.5). The same fields, a different question about rows. */
+type Direction = 'import' | 'export';
+
+export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Element {
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
   const [itemType, setItemType] = useState('Product');
   const [attributes, setAttributes] = useState<AttributeView[]>([]);
@@ -34,6 +38,9 @@ export function App(): JSX.Element {
   const [name, setName] = useState('');
   const [dataSource, setDataSource] = useState<DataSource>('template');
   const [pasted, setPasted] = useState('');
+  const [direction, setDirection] = useState<Direction>('import');
+  const [selection, setSelection] = useState<ExportSelection>({ kind: 'skuList', codes: [], pattern: '%' });
+  const [codesText, setCodesText] = useState('');
 
   const [describeEnabled, setDescribeEnabled] = useState(false);
   /** The user has said they checked the unverified attributes exist in SAP Commerce. */
@@ -69,9 +76,7 @@ export function App(): JSX.Element {
    * download: same fields, same order, same shapes, all of it adjustable, and
    * the same generator behind it.
    */
-  function applyResolution(resolution: Resolution): void {
-    const request = resolution.request;
-    if (!request) return;
+  function applyRequest(request: SheetRequest): void {
     setItemType(request.itemType);
     setChosen(request.fields.map((field) => ({ name: field.name, ...(field.variant ? { variant: field.variant } : {}) })));
     setName(request.name);
@@ -84,7 +89,26 @@ export function App(): JSX.Element {
       setDataSource('paste');
       setPasted(request.rows.map((row) => row.join('\t')).join('\n'));
     }
+    if (request.direction === 'export' && request.export) {
+      setDirection('export');
+      setSelection(request.export);
+      setCodesText((request.export.codes ?? []).join('\n'));
+    } else {
+      setDirection('import');
+    }
   }
+
+  function applyResolution(resolution: Resolution): void {
+    if (resolution.request) applyRequest(resolution.request);
+  }
+
+  // Reusing something from the history loads what was asked for, not the files
+  // it produced - so it regenerates against today's library (§6.7).
+  const reuseKey = reuse ? JSON.stringify(reuse) : '';
+  useEffect(() => {
+    if (reuse) applyRequest(reuse);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reuseKey]);
 
   /**
    * The columns a paste has to line up with, taken from the last preview - the
@@ -109,6 +133,11 @@ export function App(): JSX.Element {
     [preview],
   );
 
+  useEffect(() => {
+    if (selection.kind === 'skuList') setSelection((current) => ({ ...current, codes: parseCodes(codesText) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codesText, selection.kind]);
+
   const aligned = useMemo(
     () => (dataSource === 'paste' && pasted.trim() ? alignPastedRows(pasted, labels) : null),
     [dataSource, pasted, labels],
@@ -130,16 +159,19 @@ export function App(): JSX.Element {
     name: sheetName,
     itemType,
     fields: chosen,
-    rows: aligned?.rows ?? [],
+    rows: direction === 'import' ? (aligned?.rows ?? []) : [],
+    direction,
+    export: direction === 'export' ? selection : null,
   });
   const request = useMemo<SheetRequest | null>(() => {
     if (chosen.length === 0) return null;
-    const parsed = JSON.parse(requestKey) as SheetRequest & { rows: string[][] };
+    const parsed = JSON.parse(requestKey) as SheetRequest & { rows: string[][]; export: ExportSelection | null };
     return {
       name: parsed.name,
       itemType: parsed.itemType,
       fields: parsed.fields,
       ...(parsed.rows.length > 0 ? { rows: parsed.rows } : {}),
+      ...(parsed.export ? { direction: 'export' as const, export: parsed.export } : {}),
     };
   }, [requestKey, chosen.length]);
 
@@ -219,7 +251,17 @@ export function App(): JSX.Element {
           <h2>Describe it</h2>
           <DescribeBox enabled={describeEnabled} onResolved={applyResolution} />
 
-          <h2>1. What are you loading?</h2>
+          <h2>1. What are you doing?</h2>
+          <div className="choices">
+            <label>
+              <input type="radio" checked={direction === 'import'} onChange={() => setDirection('import')} />
+              Loading data into SAP Commerce
+            </label>
+            <label>
+              <input type="radio" checked={direction === 'export'} onChange={() => setDirection('export')} />
+              Pulling data out of it
+            </label>
+          </div>
           <label className="stacked">
             Item type
             <select
@@ -266,7 +308,16 @@ export function App(): JSX.Element {
             />
           </label>
 
-          <h2>4. The data</h2>
+          <h2>4. {direction === 'export' ? 'Which records' : 'The data'}</h2>
+          {direction === 'export' ? (
+            <ExportPanel
+              selection={selection}
+              attributes={attributes}
+              onChange={setSelection}
+              codesText={codesText}
+              onCodesText={setCodesText}
+            />
+          ) : (
           <div className="choices">
             <label>
               <input
@@ -280,9 +331,11 @@ export function App(): JSX.Element {
               <input type="radio" checked={dataSource === 'paste'} onChange={() => setDataSource('paste')} />
               Paste the rows here
             </label>
-          </div>
 
-          {dataSource === 'paste' ? (
+          </div>
+          )}
+
+          {direction === 'import' && dataSource === 'paste' ? (
             <>
               <textarea
                 className="paste"

@@ -34,6 +34,16 @@ export const sheetRequestSchema = z.object({
   intent: z.string().max(2000).optional(),
   templateId: z.string().max(200).optional(),
   rows: z.array(z.array(z.string())).max(50000).optional(),
+  /** How an export picks its rows (§6.5). Its presence makes this an export. */
+  export: z
+    .object({
+      kind: z.enum(['skuList', 'skuWildcard', 'attributeWildcard']),
+      codes: z.array(z.string().max(200)).max(20000).optional(),
+      pattern: z.string().max(200).optional(),
+      attribute: z.string().max(200).optional(),
+      targetFile: z.string().max(200).optional(),
+    })
+    .optional(),
   /** Set by the download button once the user has ticked the unverified confirmation. */
   confirmedUnverified: z.boolean().optional(),
 });

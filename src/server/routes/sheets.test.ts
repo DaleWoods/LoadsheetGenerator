@@ -16,6 +16,8 @@ const resolver: Resolver = async ({ description }) => ({
     itemType: 'Product',
     name: 'Editors Pick',
     operation: 'INSERT_UPDATE',
+    direction: 'import',
+    exportSelection: null,
     fields: [{ attribute: 'isEditorsPick', inCatalogue: false, variant: null, why: 'the flag asked for' }],
     rows: description.includes('17331268') ? [['17331268', 'TRUE']] : null,
     clarification: null,
@@ -207,5 +209,62 @@ describe('the gate on an attribute the library does not know', () => {
       attributes: { attribute: string }[];
     };
     expect(attributes.attributes.map((a) => a.attribute)).toContain('isEditorsPick');
+  });
+});
+
+describe('history', () => {
+  it('records a sheet when it is downloaded, not while it is being previewed', async () => {
+    const request = { name: 'History Test', itemType: 'Product', fields: [{ name: 'metaKeywords' }] };
+    await post('/api/sheets/preview', request);
+    await post('/api/sheets/preview', request);
+
+    const before = (await (await get('/api/sheets/history')).json()) as { history: { name: string }[] };
+    expect(before.history.filter((entry) => entry.name === 'History Test')).toHaveLength(0);
+
+    expect((await post('/api/sheets/package', request)).status).toBe(200);
+    const after = (await (await get('/api/sheets/history')).json()) as {
+      history: { name: string; username: string; outcome: string; filename: string; request: unknown }[];
+    };
+    const entry = after.history.find((e) => e.name === 'History Test')!;
+    expect(entry).toMatchObject({ username: 'dale', outcome: 'downloaded', filename: 'HistoryTest.zip' });
+    // What is kept is the request, so replaying it regenerates against the
+    // library as it stands then - not the files that came out today.
+    expect(entry.request).toMatchObject({ itemType: 'Product', fields: [{ name: 'metaKeywords' }] });
+  });
+
+  it('does not carry the unverified confirmation into a reused request', async () => {
+    // Ticking that box was a decision about one download, not part of the sheet.
+    await post('/api/sheets/package', {
+      name: 'Confirmed Once',
+      itemType: 'Product',
+      fields: [{ name: 'isNotInTheLibrary' }],
+      confirmedUnverified: true,
+    });
+    const body = (await (await get('/api/sheets/history')).json()) as {
+      history: { name: string; request: { confirmedUnverified?: boolean } }[];
+    };
+    const entry = body.history.find((e) => e.name === 'Confirmed Once')!;
+    expect(entry.request.confirmedUnverified).toBeUndefined();
+  });
+
+  it('can be narrowed to one person', async () => {
+    const mine = (await (await get('/api/sheets/history?mine=true')).json()) as { history: { username: string }[] };
+    expect(mine.history.every((entry) => entry.username === 'dale')).toBe(true);
+  });
+
+  it('keeps an export in the history too, and says it was one', async () => {
+    await post('/api/sheets/package', {
+      name: 'Roundel Export',
+      itemType: 'Product',
+      fields: [{ name: 'akamaiRoundel' }],
+      export: { kind: 'skuList', codes: ['17331268'] },
+    });
+    const body = (await (await get('/api/sheets/history')).json()) as {
+      history: { name: string; direction: string; filename: string }[];
+    };
+    expect(body.history.find((e) => e.name === 'Roundel Export')).toMatchObject({
+      direction: 'export',
+      filename: 'RoundelExport.impex',
+    });
   });
 });

@@ -1,0 +1,141 @@
+import { describe, expect, it } from 'vitest';
+import { buildCatalogue } from './catalogue.js';
+import { composeSpec } from './compose.js';
+import { generateLoadSheet } from './generate.js';
+import { buildExportQuery, catalogVersionValues, selectionProblems } from './exportQuery.js';
+import { packageLoadSheet } from './packageSheet.js';
+import { normaliseSeed } from '../library/seedTemplates.js';
+import { readSeedFile } from '../library/seedLibrary.js';
+import type { ExportSelection } from '../../shared/spec.js';
+
+const templates = normaliseSeed(readSeedFile());
+const catalogue = buildCatalogue(templates);
+const context = { templates, catalogue };
+const at = { generatedAt: '2026-09-05' };
+
+function exportSheet(name: string, fields: string[], selection: ExportSelection) {
+  return generateLoadSheet(
+    composeSpec({ name, itemType: 'Product', fields: fields.map((field) => ({ name: field })), export: selection }, context),
+    context,
+    at,
+  );
+}
+
+describe('the catalog version an export restricts to', () => {
+  it('is read out of the script own macros, as values', () => {
+    expect(
+      catalogVersionValues([
+        ['productCatalog', 'masterProductCatalog'],
+        ['catalogVersion', "catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true]"],
+      ]),
+    ).toEqual({ catalogId: 'masterProductCatalog', version: 'Staged' });
+  });
+
+  it('reads a catalog hard-coded in place of the macro, as the category scripts do', () => {
+    expect(
+      catalogVersionValues([
+        ['catalogVersion', "catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true]"],
+      ]),
+    ).toEqual({ catalogId: 'Goldsmiths_UK_ProductCatalog', version: 'Staged' });
+  });
+
+  it('gives up rather than guessing', () => {
+    expect(catalogVersionValues([['lang', 'en']])).toBeNull();
+    expect(catalogVersionValues([['catalogVersion', 'catalogversion(catalog(id),version)']])).toBeNull();
+  });
+});
+
+describe('the three export patterns', () => {
+  it('pulls an explicit list of codes', () => {
+    const out = exportSheet('Roundel Export', ['akamaiRoundel'], {
+      kind: 'skuList',
+      codes: ['17331268', '17331097'],
+    });
+    expect(out.impex.content).toContain("{i:code} IN ('17331268', '17331097')");
+    // The column order is WOSG's own for an export: catalogVersion, then the key.
+    expect(out.impex.content).toContain('INSERT_UPDATE Product;$catalogVersion;code[unique=true];akamaiRoundel');
+  });
+
+  it('pulls a code wildcard', () => {
+    const out = exportSheet('Special Brand Wildcard', ['specialBrandField1'], {
+      kind: 'skuWildcard',
+      pattern: '173%',
+    });
+    expect(out.impex.content).toContain("{i:code} LIKE '173%'");
+  });
+
+  it('pulls everything that has a value, for an attribute wildcard', () => {
+    const out = exportSheet('Roundel Wildcard', ['akamaiRoundel'], {
+      kind: 'attributeWildcard',
+      attribute: 'akamaiRoundel',
+      pattern: '%',
+    });
+    expect(out.impex.content).toContain('{i:akamaiRoundel} IS NOT NULL');
+
+    const matching = buildExportQuery(
+      { kind: 'attributeWildcard', attribute: 'akamaiRoundel', pattern: 'sale%' },
+      { itemType: 'Product' },
+    );
+    expect(matching.query).toContain("{i:akamaiRoundel} LIKE 'sale%'");
+  });
+
+  it('restricts to one catalog version, with values rather than the macro', () => {
+    const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
+    // The macro expands to a column definition; ImpEx substitutes macros
+    // everywhere, so one inside the query would paste that into the SQL.
+    const query = /exportItemsFlexibleSearch\( ""(.+?)"" \)/.exec(out.impex.content)![1]!;
+    expect(query).not.toMatch(/\$[A-Za-z_]/);
+    expect(query).toContain("{c:id} = 'masterProductCatalog'");
+    expect(query).toContain("{cv:version} = 'Staged'");
+  });
+
+  it('says where the CSV will appear, since the app cannot go and get it', () => {
+    const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
+    expect(out.impex.content).toContain('"#% impex.setTargetFile( ""RoundelExport.csv"" );"');
+    expect(out.summary).toContain('writing RoundelExport.csv inside SAP Commerce for you to collect');
+  });
+
+  it('comes out as one file, not a zip', async () => {
+    const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
+    expect(out.csvs).toEqual([]);
+    const bundle = await packageLoadSheet(out);
+    expect(bundle.filename).toBe('RoundelExport.impex');
+    expect(bundle.contentType).toBe('text/plain; charset=utf-8');
+  });
+
+  it('says the query mechanics are not from a WOSG script', () => {
+    const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
+    expect(out.findings.find((f) => f.code === 'export.mechanicsUnverified')).toMatchObject({ severity: 'info' });
+    expect(out.impex.content).toContain('CHECK ONCE');
+    expect(out.packageable).toBe(true);
+  });
+});
+
+describe('an export that would pull the wrong rows', () => {
+  it('refuses a list with nothing in it', () => {
+    const out = exportSheet('Empty', ['akamaiRoundel'], { kind: 'skuList', codes: [] });
+    expect(out.findings.find((f) => f.code === 'export.noCodes')?.severity).toBe('error');
+    expect(out.packageable).toBe(false);
+  });
+
+  it('refuses a code carrying a quote rather than escaping it away', () => {
+    // A quote in a product code means the list was mangled somewhere on its way
+    // here; guessing what was meant is how the wrong rows get exported.
+    expect(selectionProblems({ kind: 'skuList', codes: ["17331268' OR 1=1 --"] })).toContainEqual(
+      expect.objectContaining({ code: 'export.badCode' }),
+    );
+    const out = exportSheet('Injected', ['akamaiRoundel'], { kind: 'skuList', codes: ["17331268' OR 1=1 --"] });
+    expect(out.packageable).toBe(false);
+  });
+
+  it('refuses a wildcard with no pattern', () => {
+    const out = exportSheet('No pattern', ['akamaiRoundel'], { kind: 'skuWildcard', pattern: '  ' });
+    expect(out.findings.find((f) => f.code === 'export.noPattern')?.severity).toBe('error');
+  });
+
+  it('still flags an attribute the library does not have', () => {
+    const out = exportSheet('Editors Pick Export', ['isEditorsPick'], { kind: 'skuWildcard', pattern: '173%' });
+    expect(out.findings.find((f) => f.code === 'column.unverified')).toBeDefined();
+    expect(out.impex.content).toContain('UNVERIFIED COLUMN: isEditorsPick');
+  });
+});

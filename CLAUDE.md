@@ -54,6 +54,17 @@ in `docs/load-sheet-template-library.md`.
   own password needs); `requireUser` also insists the password is the user's
   own rather than one an administrator handed out.
 
+- **An export's query names values, never macros.** ImpEx substitutes macros
+  everywhere in the file, so a `$catalogVersion` inside a FlexibleSearch query
+  pastes a column definition into the SQL. The catalog and version are read out
+  of the script's own macro and written as literals; the validator refuses any
+  export query containing a `$`.
+
+- **History keeps the request, not the files.** Reusing an entry regenerates
+  against today's library, so a sheet run again next month picks up an
+  attribute learned since. Keeping the output would make history a drawer of
+  stale files, which is what this app replaces.
+
 - **Schema changes go in a migration**, never in `schema.sql`. The baseline is
   applied first and the migrations after it, so a column in both breaks a fresh
   database.

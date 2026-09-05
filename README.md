@@ -23,12 +23,13 @@ src/server/
   auth/          passwords, and who is allowed through
   library/       the supplied extraction, and turning it into library records
   domain/        catalogue, template matching, house style, resolve, generate,
-                 validate, package
+                 validate, export queries, package
   services/      the library store, and one request to one load sheet
   routes/        the HTTP API
   db/            schema, migrations, seeding
   integrations/  the model that turns a description into a specification
-src/web/         signing in, the field picker (Mode B), the describe box (Mode A)
+src/web/         signing in, the field picker (Mode B), the describe box (Mode A),
+                 export selection, history, accounts
 ```
 
 ## The shape of it

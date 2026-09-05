@@ -11,6 +11,7 @@
 
 import { normaliseBoolean } from '../../shared/fieldTypes.js';
 import { parseCsv } from '../../shared/csv.js';
+import { catalogVersionValues, selectionProblems } from './exportQuery.js';
 import type { ResolvedLoadSheet } from './resolve.js';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -91,6 +92,54 @@ export function validate(input: ValidationInput): Finding[] {
   }
 
   const declaredMacros = new Set(input.resolved.macros.map(([name]) => name));
+
+  if (input.resolved.direction === 'export') {
+    if (!input.resolved.export) {
+      add({
+        severity: 'error',
+        code: 'export.noSelection',
+        message: 'An export needs to say which rows to pull: a list of codes, or a pattern.',
+      });
+    } else {
+      for (const problem of selectionProblems(input.resolved.export)) {
+        add({ severity: 'error', code: problem.code, message: problem.message });
+      }
+      // A macro reaching the query means a column definition has been pasted
+      // into the middle of the SQL, because ImpEx substitutes macros everywhere.
+      const queryLine = /impex\.exportItemsFlexibleSearch\((.*)\)/.exec(input.impex.content)?.[1] ?? '';
+      if (/\$[A-Za-z_]/.test(queryLine)) {
+        add({
+          severity: 'error',
+          code: 'export.macroInQuery',
+          message:
+            'The export query contains a macro reference. ImpEx expands macros everywhere, so this would put a column definition inside the query.',
+        });
+      }
+      if (input.resolved.blocks.some((b) => b.columns.some((c) => c.column.kind === 'macro' && /catalogversion/i.test(c.column.name))) && !catalogVersionValues(input.resolved.macros)) {
+        add({
+          severity: 'warning',
+          code: 'export.noCatalogVersion',
+          message:
+            'The catalog and version could not be read from the script macros, so the export is not restricted to one - Staged and Online rows will both come out.',
+        });
+      }
+      if (!/impex\.exportItemsFlexibleSearch/.test(input.impex.content)) {
+        add({
+          severity: 'error',
+          code: 'export.noQuery',
+          message: 'The script was written without the line that runs the export query.',
+        });
+      }
+    }
+    // Said plainly, because it is the one part of a generated export that did
+    // not come from a script WOSG has run.
+    add({
+      severity: 'info',
+      code: 'export.mechanicsUnverified',
+      message:
+        'The columns come from WOSG export scripts, but the setTargetFile and export query lines are written from the ImpEx documentation - the supplied extraction did not include them. Worth checking against a known-good export once.',
+    });
+  }
 
   input.resolved.blocks.forEach((block, blockIndex) => {
     const written = script[blockIndex];

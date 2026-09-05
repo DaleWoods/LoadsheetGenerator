@@ -16,7 +16,7 @@
 import { fieldShape, type FieldShape } from '../../shared/fieldTypes.js';
 import { formatColumn, isUnique, parseColumn, requiredMacros, type ImpexColumn } from '../../shared/impex.js';
 import type { CsvLayout, Direction, ImpexOperation, LibraryTemplate } from '../../shared/library.js';
-import type { LoadSheetSpec, SpecBlock, SpecColumn, SpecCsv } from '../../shared/spec.js';
+import type { ExportSelection, LoadSheetSpec, SpecBlock, SpecColumn, SpecCsv } from '../../shared/spec.js';
 import type { BooleanConfidence, Catalogue } from './catalogue.js';
 
 export interface ResolvedColumn {
@@ -58,6 +58,8 @@ export interface ResolvedLoadSheet {
   /** Only the macros the script actually uses, in library order. */
   macros: [string, string][];
   blocks: ResolvedBlock[];
+  /** How an export picks its rows. Absent on an import. */
+  export?: ExportSelection;
 }
 
 export interface ResolveContext {
@@ -254,6 +256,7 @@ export function resolveSpec(spec: LoadSheetSpec, context: ResolveContext): Resol
     ...(spec.basedOnTemplateId ? { basedOnTemplateId: spec.basedOnTemplateId } : {}),
     macros: resolveMacros(spec, columns, context),
     blocks,
+    ...(spec.export ? { export: spec.export } : {}),
   };
 }
 

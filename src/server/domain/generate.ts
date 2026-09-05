@@ -8,6 +8,7 @@
 
 import { writeCsv } from '../../shared/csv.js';
 import { normaliseBoolean } from '../../shared/fieldTypes.js';
+import { buildExportQuery, catalogVersionValues, targetFileFor } from './exportQuery.js';
 import type { LoadSheetSpec } from '../../shared/spec.js';
 import { resolveSpec, type ResolvedBlock, type ResolvedLoadSheet, type ResolveContext } from './resolve.js';
 import { hasErrors, validate, type Finding, type GeneratedFile } from './validate.js';
@@ -68,6 +69,32 @@ function wrapComment(text: string, width = 76): string[] {
   return lines.map((l) => `# ${l}`);
 }
 
+/**
+ * The lines that make a script an export: where the CSV is written inside SAP
+ * Commerce, and which rows go into it.
+ *
+ * Generating the script is the whole job - the CSV appears on the SAP side when
+ * it is run in HAC, and the app has no connection to go and fetch it (§9b Q3).
+ * So the file it will write is named in the script and in the summary, which is
+ * what somebody needs in order to find it.
+ */
+function exportLines(resolved: ResolvedLoadSheet, block: ResolvedBlock): { before: string[]; after: string[] } {
+  const selection = resolved.export;
+  if (!selection) return { before: [], after: [] };
+
+  const catalogVersion = catalogVersionValues(resolved.macros);
+  const built = buildExportQuery(selection, {
+    itemType: block.itemType,
+    ...(catalogVersion ? { catalogVersion } : {}),
+  });
+  const target = targetFileFor(selection, `${slugForFiles(resolved.name)}.csv`);
+
+  return {
+    before: [`"#% impex.setTargetFile( ""${target}"" );"`],
+    after: [`"#% impex.exportItemsFlexibleSearch( ""${built.query}"" );"`],
+  };
+}
+
 function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateName?: string): string {
   const lines: string[] = [`# ${resolved.name}`];
   if (resolved.intent) lines.push(...wrapComment(resolved.intent));
@@ -91,6 +118,18 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
     );
   }
 
+  if (resolved.direction === 'export') {
+    lines.push('#');
+    lines.push(
+      ...wrapComment(
+        'CHECK ONCE: the column list below is taken from WOSG export scripts, but the ' +
+          'setTargetFile and exportItemsFlexibleSearch lines are written from the ImpEx ' +
+          'documentation rather than copied from one - the supplied extraction did not ' +
+          'include them. Compare this against a known-good export before relying on it.',
+      ),
+    );
+  }
+
   lines.push('');
   lines.push(PREAMBLE_CODE_EXECUTION);
   for (const [name, definition] of resolved.macros) lines.push(`$${name}=${definition}`);
@@ -104,7 +143,10 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
         : '';
       lines.push(...wrapComment(`UNVERIFIED COLUMN: ${column.expression} - not in the load sheet library.${suggestion}`));
     }
+    const exported = exportLines(resolved, block);
+    lines.push(...exported.before);
     lines.push(headerLine(block));
+    lines.push(...exported.after);
     if (block.csv) lines.push(includeCall(block.csv));
   }
 
@@ -146,6 +188,25 @@ function writeBlockCsv(block: ResolvedBlock): GeneratedFile | undefined {
 
 function summarise(resolved: ResolvedLoadSheet, findings: Finding[]): string {
   const parts: string[] = [];
+
+  if (resolved.export) {
+    for (const block of resolved.blocks) {
+      const catalogVersion = catalogVersionValues(resolved.macros);
+      const built = buildExportQuery(resolved.export, {
+        itemType: block.itemType,
+        ...(catalogVersion ? { catalogVersion } : {}),
+      });
+      const fields = block.columns.filter((c) => c.column.kind === 'attribute').length;
+      parts.push(
+        `Pulls ${fields} column${fields === 1 ? '' : 's'} of ${block.itemType} data for ${built.description}, ` +
+          `writing ${targetFileFor(resolved.export, `${slugForFiles(resolved.name)}.csv`)} inside SAP Commerce for you to collect`,
+      );
+    }
+    const errors = findings.filter((f) => f.severity === 'error').length;
+    parts.push(errors > 0 ? `${errors} problem${errors === 1 ? '' : 's'} to fix first.` : 'Run it in HAC to produce the CSV.');
+    return parts.join('. ').replace(/\.\./g, '.');
+  }
+
   for (const block of resolved.blocks) {
     const key = block.columns.filter((c) => c.unique).map((c) => c.column.name);
     const fields = block.columns.filter((c) => !c.unique && c.column.kind === 'attribute');

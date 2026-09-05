@@ -11,7 +11,7 @@
 
 import type { Direction, ImpexOperation, LibraryTemplate } from '../../shared/library.js';
 import type { ImpexColumn } from '../../shared/impex.js';
-import type { LoadSheetSpec, SpecBlock, SpecColumn } from '../../shared/spec.js';
+import type { ExportSelection, LoadSheetSpec, SpecBlock, SpecColumn } from '../../shared/spec.js';
 import type { Catalogue } from './catalogue.js';
 import { houseStyle } from './houseStyle.js';
 import { closestTemplate, csvConventions, type TemplateMatch } from './matching.js';
@@ -35,6 +35,8 @@ export interface ComposeRequest {
   op?: ImpexOperation;
   intent?: string;
   rows?: string[][];
+  /** How an export picks its rows (§6.5). Its presence makes this an export. */
+  export?: ExportSelection;
   /** Override the template whose conventions are copied. Otherwise the closest match wins. */
   templateId?: string;
 }
@@ -103,7 +105,7 @@ function sameColumn(a: SpecColumn, b: SpecColumn): boolean {
 }
 
 export function composeSpec(request: ComposeRequest, context: ComposeContext): LoadSheetSpec {
-  const direction = request.direction ?? 'import';
+  const direction = request.direction ?? (request.export ? 'export' : 'import');
   const attributes = request.fields.map((f) => f.name);
   const found = request.templateId
     ? matchNamedTemplate(context.templates, request.templateId, request.itemType)
@@ -156,6 +158,7 @@ export function composeSpec(request: ComposeRequest, context: ComposeContext): L
     macros: {},
     blocks: [block],
     ...(request.intent ? { intent: request.intent } : {}),
+    ...(request.export ? { export: request.export } : {}),
   };
 }
 
