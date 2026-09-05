@@ -88,7 +88,19 @@ export async function resolveDescription(
       notes.push(`Left out ${entry.attribute}: it is the key, and the generator writes it.`);
       continue;
     }
-    if (fields.some((existing) => existing.attribute.toLowerCase() === field.attribute.toLowerCase())) {
+    // The same attribute twice is only a duplicate when it is the same column
+    // twice. A localized field in two languages is two columns - the house
+    // convention writes them `description[lang=$lang]` then
+    // `description[lang=$lang2]` - and keying this on the name alone dropped
+    // the second one, so a sheet asked for in UK and US English came out with
+    // only the UK column and a note saying so.
+    if (
+      fields.some(
+        (existing) =>
+          existing.attribute.toLowerCase() === field.attribute.toLowerCase() &&
+          (existing.variant ?? '') === (field.variant ?? ''),
+      )
+    ) {
       notes.push(`Left out a second copy of ${field.attribute}.`);
       continue;
     }

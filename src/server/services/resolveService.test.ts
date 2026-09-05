@@ -145,6 +145,52 @@ describe('what the app does with the model answer', () => {
     expect(resolution.notes.join(' ')).toContain('it is the key');
   });
 
+  it('keeps a localized field asked for in two languages as two columns', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'Load the product description in UK and US English, and the Akamai image count, for 10 SKUs',
+      answering({
+        name: 'Product Descriptions And Image Count',
+        fields: [
+          field('description', { variant: 'description[lang=$lang]' }),
+          field('description', { variant: 'description[lang=$lang2]' }),
+          field('akamaiImageCount'),
+        ],
+      }),
+    );
+
+    expect(resolution.request!.fields).toEqual([
+      { name: 'description', variant: 'description[lang=$lang]' },
+      { name: 'description', variant: 'description[lang=$lang2]' },
+      { name: 'akamaiImageCount' },
+    ]);
+    expect(resolution.notes.join(' ')).not.toContain('second copy');
+
+    // And it has to survive generation: two columns on the header line, two
+    // headings in the CSV, and both languages declared.
+    const sheet = await generateFromRequest(db, resolution.request!);
+    const header = sheet.impex.content.split('\n').find((line) => line.startsWith('INSERT_UPDATE'))!;
+    expect(header).toContain('description[lang=$lang];description[lang=$lang2]');
+    expect(sheet.impex.content).toContain('$lang=en');
+    expect(sheet.impex.content).toContain('$lang2=en_US');
+    expect(sheet.findings.filter((finding) => finding.severity === 'error')).toEqual([]);
+  });
+
+  it('still drops a second copy of the very same column', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'Load the description twice for some reason',
+      answering({
+        fields: [
+          field('description', { variant: 'description[lang=$lang]' }),
+          field('description', { variant: 'description[lang=$lang]' }),
+        ],
+      }),
+    );
+    expect(resolution.request!.fields).toEqual([{ name: 'description', variant: 'description[lang=$lang]' }]);
+    expect(resolution.notes.join(' ')).toContain('second copy');
+  });
+
   it('carries rows through when the description had the values in it', async () => {
     const resolution = await resolveDescription(
       db,

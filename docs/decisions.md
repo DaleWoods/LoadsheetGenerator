@@ -124,3 +124,34 @@ that distinguishes it.
 
 The list resets to the top when the search or a filter changes; leaving it
 where it was put the first match half under a sticky heading.
+
+## A localized field in two languages is two columns
+
+WOSG writes the UK and US text of a localized attribute as two columns side by
+side — `description[lang=$lang]` then `description[lang=$lang2]`, with
+`$lang=en` and `$lang2=en_US`. The resolver's guard against the model returning
+the same field twice was keyed on the attribute name alone, so the second
+language was dropped as a duplicate: a sheet asked for in UK and US English
+came out with the UK column only, and a note saying it had left out a second
+copy of description. The guard now keys on the attribute *and* the shape, which
+is what makes two columns two columns. `columns.duplicate` in the validator is
+still the backstop if two genuinely identical columns get through.
+
+Three things followed from it:
+
+- The picker offers a localized field's shapes as **checkboxes**, not radios,
+  because "which languages?" is a different question from "append or
+  overwrite?" — the first can have more than one answer and each answer is its
+  own column.
+- The chosen-columns list matched preview columns to ticked fields by attribute
+  name, so with two `description` columns both rows pointed at the first and
+  removing either removed both. It counts position among the ticked columns
+  instead.
+- A shape was described as "written per language (lang2)", which does not say
+  which language you are getting. It resolves the macro now — "(en_US)".
+  `catalogue.macros` holds one row per distinct definition, most-used first, and
+  a handful of scripts define `$lang` as `en_US`, so the first row for a name is
+  the one to take.
+
+The generator needed no change: given the right specification it already wrote
+both columns, declared both macros and gave them distinct CSV headings.

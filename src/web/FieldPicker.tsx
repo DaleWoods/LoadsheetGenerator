@@ -6,6 +6,13 @@
  * more than one way - append and remove, per-language or not - both shapes are
  * offered rather than one being chosen for them, because that difference
  * changes what the import does.
+ *
+ * The two are offered differently, because they are different questions. A
+ * field written either as an append or as an overwrite is one column and you
+ * have to pick which, so those are radio buttons. A localized field is one
+ * column *per language* - the house convention writes `[lang=$lang]` and
+ * `[lang=$lang2]` side by side - so those are checkboxes, and taking two of
+ * them gives two columns.
  */
 
 import { useMemo, useState } from 'react';
@@ -48,7 +55,16 @@ function TypeBadge({ attribute }: { attribute: AttributeView }): JSX.Element | n
 export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX.Element {
   const [search, setSearch] = useState('');
 
-  const chosenByName = useMemo(() => new Map(chosen.map((field) => [field.name, field])), [chosen]);
+  /** Every entry for an attribute: a localized field can hold one per language. */
+  const chosenByName = useMemo(() => {
+    const map = new Map<string, ChosenField[]>();
+    for (const field of chosen) {
+      const existing = map.get(field.name);
+      if (existing) existing.push(field);
+      else map.set(field.name, [field]);
+    }
+    return map;
+  }, [chosen]);
 
   const shown = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -60,6 +76,11 @@ export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX
         attribute.usedIn.some((name) => name.toLowerCase().includes(term)),
     );
   }, [attributes, search]);
+
+  /** Which shape each entry will actually be written in, implicit ones included. */
+  function shapeOf(attribute: AttributeView, field: ChosenField): string | undefined {
+    return field.variant ?? inUse.get(attribute.attribute) ?? attribute.variants[0]?.signature;
+  }
 
   function toggle(attribute: AttributeView): void {
     if (chosenByName.has(attribute.attribute)) {
@@ -76,6 +97,20 @@ export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX
 
   function setVariant(name: string, signature: string): void {
     onChange(chosen.map((field) => (field.name === name ? { ...field, variant: signature } : field)));
+  }
+
+  /**
+   * Replace an attribute's languages, keeping the column order it already has:
+   * the new columns sit where the first of the old ones was, so changing which
+   * languages a field is taken in does not move it down the sheet.
+   */
+  function setLanguages(attribute: AttributeView, signatures: string[]): void {
+    const name = attribute.attribute;
+    const at = chosen.findIndex((field) => field.name === name);
+    const others = chosen.filter((field) => field.name !== name);
+    const before = chosen.slice(0, at === -1 ? chosen.length : at).filter((field) => field.name !== name).length;
+    const entries = signatures.map((variant) => ({ name, variant }));
+    onChange([...others.slice(0, before), ...entries, ...others.slice(before)]);
   }
 
   return (
@@ -112,21 +147,39 @@ export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX
 
               {picked && attribute.variants.length > 1 ? (
                 <div className="variants">
-                  {attribute.variants.map((variant) => (
-                    <label key={variant.signature} className="variant">
-                      <input
-                        type="radio"
-                        name={`variant-${attribute.attribute}`}
-                        checked={
-                          (picked.variant ?? inUse.get(attribute.attribute) ?? attribute.variants[0]!.signature) ===
-                          variant.signature
-                        }
-                        onChange={() => setVariant(attribute.attribute, variant.signature)}
-                      />
-                      <span>{variant.description}</span>
-                      <code className="variant-signature">{variant.signature}</code>
-                    </label>
-                  ))}
+                  {attribute.localized ? (
+                    <p className="variant-lead">Which languages? Each one is its own column.</p>
+                  ) : null}
+                  {attribute.variants.map((variant) => {
+                    const on = picked.some((field) => shapeOf(attribute, field) === variant.signature);
+                    return (
+                      <label key={variant.signature} className="variant">
+                        <input
+                          type={attribute.localized ? 'checkbox' : 'radio'}
+                          name={attribute.localized ? undefined : `variant-${attribute.attribute}`}
+                          checked={on}
+                          onChange={() => {
+                            if (!attribute.localized) {
+                              setVariant(attribute.attribute, variant.signature);
+                              return;
+                            }
+                            const wanted = attribute.variants
+                              .map((candidate) => candidate.signature)
+                              .filter((signature) =>
+                                signature === variant.signature
+                                  ? !on
+                                  : picked.some((field) => shapeOf(attribute, field) === signature),
+                              );
+                            // Unticking the last language is unticking the field.
+                            if (wanted.length === 0) toggle(attribute);
+                            else setLanguages(attribute, wanted);
+                          }}
+                        />
+                        <span>{variant.description}</span>
+                        <code className="variant-signature">{variant.signature}</code>
+                      </label>
+                    );
+                  })}
                 </div>
               ) : null}
 

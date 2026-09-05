@@ -41,14 +41,31 @@ export interface ItemTypeView {
   directions: string[];
 }
 
-function describeVariant(variant: AttributeVariant): string {
+/**
+ * The language a localized shape writes, as somebody would say it.
+ *
+ * The house convention names the languages through macros - `$lang=en`,
+ * `$lang2=en_US` - so the modifier alone reads "(lang2)", which says nothing
+ * about which language you are getting. Resolving it against the library's own
+ * macro definitions turns that into "(en_US)". Only a plain definition is
+ * followed; anything with structure in it is left as written.
+ */
+function languageOf(variant: AttributeVariant, macros: Map<string, string>): string | undefined {
+  const lang = findModifier(variant.column, 'lang');
+  if (lang === undefined) return undefined;
+  if (!lang.startsWith('$')) return lang;
+  const definition = macros.get(lang.slice(1));
+  return definition !== undefined && /^[A-Za-z0-9_-]+$/.test(definition) ? definition : lang.replace('$', '');
+}
+
+function describeVariant(variant: AttributeVariant, macros: Map<string, string>): string {
   const parts: string[] = [];
   const mode = variant.shape.mode;
   if (mode === 'append') parts.push('adds to the values already there');
   if (mode === 'remove') parts.push('takes values away');
   if (variant.shape.localized) {
-    const lang = findModifier(variant.column, 'lang');
-    parts.push(lang ? `written per language (${lang.replace('$', '')})` : 'written per language');
+    const lang = languageOf(variant, macros);
+    parts.push(lang ? `written per language (${lang})` : 'written per language');
   }
   switch (variant.shape.type) {
     case 'boolean':
@@ -81,17 +98,25 @@ function templateNames(templates: LibraryTemplate[], ids: string[], limit = 3): 
     .filter((name) => name.length > 0);
 }
 
-function toVariantView(variant: AttributeVariant, templates: LibraryTemplate[]): VariantView {
+function toVariantView(
+  variant: AttributeVariant,
+  templates: LibraryTemplate[],
+  macros: Map<string, string>,
+): VariantView {
   return {
     signature: variant.signature,
-    description: describeVariant(variant),
+    description: describeVariant(variant, macros),
     label: variant.labels[0]?.label ?? '',
     uses: variant.uses,
     usedIn: templateNames(templates, variant.templateIds),
   };
 }
 
-export function toAttributeView(entry: CatalogueEntry, templates: LibraryTemplate[]): AttributeView {
+export function toAttributeView(
+  entry: CatalogueEntry,
+  templates: LibraryTemplate[],
+  macros: Map<string, string> = new Map(),
+): AttributeView {
   const labels = entry.variants.flatMap((v) => v.labels);
   return {
     attribute: entry.attribute,
@@ -101,7 +126,7 @@ export function toAttributeView(entry: CatalogueEntry, templates: LibraryTemplat
     ...(entry.boolean ? { boolean: entry.boolean } : {}),
     keyColumn: entry.keyColumn,
     uses: entry.uses,
-    variants: entry.variants.map((variant) => toVariantView(variant, templates)),
+    variants: entry.variants.map((variant) => toVariantView(variant, templates, macros)),
     usedIn: templateNames(
       templates,
       entry.variants.flatMap((v) => v.templateIds),
@@ -118,10 +143,16 @@ export function toAttributeView(entry: CatalogueEntry, templates: LibraryTemplat
  * and ticking it again would be a duplicate.
  */
 export function attributesFor(catalogue: Catalogue, templates: LibraryTemplate[], itemType: string): AttributeView[] {
+  // `catalogue.macros` holds one row per distinct definition, most-used first -
+  // a handful of scripts define `$lang` as en_US - so the first row for a name
+  // is the one to take. Building a Map straight from the list would keep the
+  // last, which is the rarest.
+  const macros = new Map<string, string>();
+  for (const macro of catalogue.macros) if (!macros.has(macro.name)) macros.set(macro.name, macro.definition);
   return catalogue
     .forItemType(itemType)
     .filter((entry) => entry.kind === 'attribute')
-    .map((entry) => toAttributeView(entry, templates))
+    .map((entry) => toAttributeView(entry, templates, macros))
     .sort((a, b) => b.uses - a.uses || a.attribute.localeCompare(b.attribute));
 }
 

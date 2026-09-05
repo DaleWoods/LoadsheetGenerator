@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { attributesFor } from './catalogueView.js';
 import { buildCatalogue } from './catalogue.js';
 import { normaliseSeed } from '../library/seedTemplates.js';
 import { readSeedFile } from '../library/seedLibrary.js';
@@ -62,5 +63,19 @@ describe('the catalogue derived from the library', () => {
     const catalogVersion = catalogue.macros.find((m) => m.name === 'catalogVersion')!;
     expect(catalogVersion.definition).toContain('catalogversion(catalog(id[default=$productCatalog])');
     expect(catalogue.macros.find((m) => m.name === 'productCatalog')!.definition).toBe('masterProductCatalog');
+  });
+
+  it('names the language a localized shape writes, not the macro it hides behind', () => {
+    const description = attributesFor(catalogue, templates, 'Product').find((a) => a.attribute === 'description')!;
+    const wording = new Map(description.variants.map((v) => [v.signature, v.description]));
+
+    // "(lang2)" says nothing about which language you are getting; the macro
+    // definitions in the library do.
+    expect(wording.get('description[lang=$lang]')).toBe('written per language (en)');
+    expect(wording.get('description[lang=$lang2]')).toBe('written per language (en_US)');
+
+    // A handful of scripts define $lang as en_US, so the most-used definition
+    // has to win: taking the last would name every $lang column en_US.
+    expect(catalogue.macros.filter((m) => m.name === 'lang')[0]!.definition).toBe('en');
   });
 });

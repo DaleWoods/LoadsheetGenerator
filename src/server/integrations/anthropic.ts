@@ -69,12 +69,14 @@ const resolutionSchema = z.object({
           .string()
           .nullable()
           .describe(
-            'When the catalogue offers more than one shape for this attribute and the request makes clear which is wanted (adding values rather than replacing them, say), the exact shape text. Otherwise null, and the generator will use the shape the closest sheet uses.',
+            'When the catalogue offers more than one shape for this attribute and the request makes clear which is wanted (adding values rather than replacing them, or a particular language, say), the exact shape text. Otherwise null, and the generator will use the shape the closest sheet uses.',
           ),
         why: z.string().describe('One short clause saying why this field is in the sheet. Shown to the user.'),
       }),
     )
-    .describe('The fields to load, in the order they should appear as columns. Do not include the key column.'),
+    .describe(
+      'The fields to load, in the order they should appear as columns. Do not include the key column. One entry per column: an attribute wanted in two languages appears twice, with a different variant each time.',
+    ),
   rows: z
     .array(z.array(z.string()))
     .nullable()
@@ -103,6 +105,7 @@ Work from the catalogue you are given, which is everything the app knows:
 - Do not add fields the request did not ask for. The key column is written for you - never include it.
 - Only fill in rows when the request contains the actual values. A request that says "for these SKUs: 17331268, 17331097" has rows; one that says "we will paste the SKUs in later" does not.
 - Booleans are written TRUE and FALSE.
+- A localized attribute wanted in more than one language is one entry per language, each with the shape for that language set in variant. The house convention writes the primary language as \`[lang=$lang]\` and the US one as \`[lang=$lang2]\`, and the catalogue lists the shapes it has. One entry produces one column, so a request for UK and US descriptions that returns a single description field gives them half the sheet.
 - An export pulls data out rather than loading it in: it has no rows going in, and it needs to say which records to pull - a list of codes the request names, a code wildcard, or a wildcard on another attribute. The columns are still chosen the same way.
 - Ask a clarifying question only when you genuinely cannot resolve the request - not to confirm something you can already work out.`;
 

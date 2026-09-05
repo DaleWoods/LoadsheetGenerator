@@ -35,24 +35,27 @@ interface Row {
 
 function rowsFrom(chosen: ChosenField[], attributes: AttributeView[], columns: PreviewColumn[] | null): Row[] {
   const byName = new Map(attributes.map((a) => [a.attribute, a]));
-  const indexOfChosen = (attribute: string): number | null => {
-    const index = chosen.findIndex((field) => field.name.toLowerCase() === attribute.toLowerCase());
-    return index === -1 ? null : index;
-  };
 
   if (columns) {
+    // The generator writes the ticked fields in the order they were ticked,
+    // with the ones it adds itself around them, so the nth column marked
+    // `chosen` is the nth ticked field. Matching them up by attribute name
+    // instead broke on a localized field taken in two languages: both columns
+    // are `description`, so both pointed at the first one, and removing either
+    // removed both.
+    let taken = -1;
     return columns.map((column, index) => ({
       key: `${column.expression}-${index}`,
       label: column.label,
       attribute: column.attribute,
       note: column.chosen ? null : column.role === 'key' ? 'the key, added for you' : 'added for you',
       unverified: column.status === 'unverified',
-      chosenIndex: column.chosen ? indexOfChosen(column.attribute) : null,
+      chosenIndex: column.chosen ? (taken += 1) : null,
     }));
   }
 
   return chosen.map((field, index) => ({
-    key: field.name,
+    key: `${field.name}-${index}`,
     label: byName.get(field.name)?.label ?? field.name,
     attribute: field.name,
     note: null,
@@ -104,7 +107,7 @@ export function ChosenFields({ chosen, attributes, columns, onChange }: Props): 
               <button
                 type="button"
                 className="link"
-                onClick={() => onChange(chosen.filter((field) => field.name !== row.attribute))}
+                onClick={() => onChange(chosen.filter((_, index) => index !== row.chosenIndex))}
                 aria-label={`Remove ${row.attribute}`}
               >
                 ✕
