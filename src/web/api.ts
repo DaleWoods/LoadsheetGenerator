@@ -225,17 +225,6 @@ export async function describeSheet(description: string): Promise<Resolution> {
   );
 }
 
-/** "It imported cleanly" - save the sheet into the library so the attribute is known next time. */
-export async function learnSheet(request: SheetRequest): Promise<{ learned: string[] }> {
-  return json<{ learned: string[] }>(
-    await fetch('/api/sheets/learn', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    }),
-  );
-}
-
 export interface HistoryEntry {
   id: string;
   createdAt: string;
@@ -248,6 +237,74 @@ export interface HistoryEntry {
   rowCount: number;
   outcome: 'downloaded' | 'learned';
   request: SheetRequest;
+}
+
+export interface RepositoryEntry {
+  id: string;
+  shelf: 'supplied' | 'saved';
+  name: string;
+  provenance: string;
+  group: string;
+  direction: string;
+  itemTypes: string[];
+  fields: string[];
+  columnCount: number;
+  csvFile: string | null;
+  columnsOffset: number | null;
+  verified: boolean;
+  description?: string;
+  reusable: boolean;
+  updatedAt: string;
+}
+
+export interface RepositoryDetail {
+  entry: RepositoryEntry;
+  blocks: {
+    op: string;
+    itemType: string;
+    headerLine: string;
+    columns: { expression: string; label: string | null }[];
+    csvHeaderRow: string[] | null;
+    csv: { file: string; encoding: string; delimiter: string; linesToSkip: number; columnsOffset: number } | null;
+  }[];
+  macros: [string, string][];
+  notes?: string;
+  request: SheetRequest | null;
+}
+
+export async function fetchRepository(query: { search?: string; itemType?: string } = {}): Promise<{
+  supplied: RepositoryEntry[];
+  saved: RepositoryEntry[];
+  totals: { supplied: number; saved: number };
+}> {
+  const params = new URLSearchParams();
+  if (query.search) params.set('search', query.search);
+  if (query.itemType) params.set('itemType', query.itemType);
+  return json(await fetch(`/api/library/repository?${params.toString()}`));
+}
+
+export async function fetchRepositoryEntry(id: string): Promise<RepositoryDetail> {
+  return json<RepositoryDetail>(await fetch(`/api/library/repository/${encodeURIComponent(id)}`));
+}
+
+export async function removeRepositoryEntry(id: string): Promise<void> {
+  await json(await fetch(`/api/library/repository/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+/** Put a generated sheet on the repository shelf. `imported` makes it evidence the catalogue trusts. */
+export async function saveToRepository(input: {
+  request: SheetRequest;
+  name?: string;
+  description?: string;
+  imported?: boolean;
+}): Promise<{ entry: RepositoryEntry; learned: string[] }> {
+  return json(
+    await fetch('/api/sheets/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  );
 }
 
 export async function fetchHistory(mine = false): Promise<HistoryEntry[]> {

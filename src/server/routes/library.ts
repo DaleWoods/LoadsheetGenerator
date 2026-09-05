@@ -1,7 +1,15 @@
 import { Router } from 'express';
 import type { Db } from '../db/index.js';
+import { requireAdmin } from '../auth/middleware.js';
 import { attributesFor, itemTypesView } from '../domain/catalogueView.js';
 import { loadLibrary } from '../services/libraryService.js';
+import {
+  listRepository,
+  NotRemovableError,
+  removeFromRepository,
+  repositoryDetail,
+  type Shelf,
+} from '../services/repositoryService.js';
 
 export function libraryRoutes(db: Db): Router {
   const router = Router();
@@ -19,6 +27,44 @@ export function libraryRoutes(db: Db): Router {
     }
     const { catalogue, templates } = await loadLibrary(db);
     res.json({ itemType, attributes: attributesFor(catalogue, templates, itemType) });
+  });
+
+  // The repository: every load sheet the app knows, on two shelves - the
+  // supplied production export, and what has been saved from the app since.
+  router.get('/repository', async (req, res) => {
+    const shelf = req.query.shelf === 'supplied' || req.query.shelf === 'saved' ? (req.query.shelf as Shelf) : undefined;
+    res.json(
+      await listRepository(db, {
+        ...(req.query.search ? { search: String(req.query.search) } : {}),
+        ...(req.query.itemType ? { itemType: String(req.query.itemType) } : {}),
+        ...(req.query.direction ? { direction: String(req.query.direction) } : {}),
+        ...(shelf ? { shelf } : {}),
+      }),
+    );
+  });
+
+  router.get('/repository/:id', async (req, res) => {
+    const detail = await repositoryDetail(db, req.params.id ?? '');
+    if (!detail) {
+      res.status(404).json({ error: 'No such load sheet in the repository.' });
+      return;
+    }
+    res.json(detail);
+  });
+
+  // Removing is an administrator's job: a saved sheet is shared, and one person
+  // tidying up would take it away from everybody.
+  router.delete('/repository/:id', requireAdmin, async (req, res) => {
+    try {
+      await removeFromRepository(db, req.params.id ?? '');
+      res.json({ ok: true });
+    } catch (err) {
+      if (err instanceof NotRemovableError) {
+        res.status(409).json({ error: err.message });
+        return;
+      }
+      throw err;
+    }
   });
 
   router.get('/templates', async (req, res) => {

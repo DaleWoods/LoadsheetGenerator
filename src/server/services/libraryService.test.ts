@@ -51,13 +51,30 @@ describe('the library store', () => {
     const columns = template.blocks[0]!.columns.map((c) =>
       c.name === 'usePngImageFormat' ? { ...c, name: 'isEditorsPick', raw: undefined } : c,
     );
+    // Saved but not run: on the shelf, and searchable, but not evidence - it
+    // must not make the attribute look known, or the confirmation the download
+    // waits on would lift itself.
     await saveTemplate(db, {
       ...template,
-      id: 'user-editors-pick',
-      name: 'Products / Editors Pick',
-      sourcePath: 'user/editors-pick',
+      id: 'saved-editors-pick',
+      name: 'Editors Pick',
+      sourcePath: 'saved/editors-pick',
       origin: 'user',
       verified: false,
+      blocks: [{ ...template.blocks[0]!, columns }],
+    });
+    const unrun = await loadLibrary(db);
+    expect(unrun.all).toHaveLength(110);
+    expect(unrun.catalogue.find('Product', 'isEditorsPick')).toBeUndefined();
+
+    // Confirmed as imported: now it is, and the field picker offers it.
+    await saveTemplate(db, {
+      ...template,
+      id: 'saved-editors-pick',
+      name: 'Editors Pick',
+      sourcePath: 'saved/editors-pick',
+      origin: 'user',
+      verified: true,
       blocks: [{ ...template.blocks[0]!, columns }],
     });
 

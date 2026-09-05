@@ -86,7 +86,16 @@ interface Accumulator {
   booleanHint: boolean;
 }
 
-export function buildCatalogue(templates: LibraryTemplate[]): Catalogue {
+/**
+ * Built from verified records only.
+ *
+ * A sheet somebody saved for reuse but has not run is in the repository and can
+ * be opened again, but it is not evidence: letting it into the catalogue would
+ * quietly make an unverified attribute look known and lift the confirmation the
+ * download waits on. Saying "it imported cleanly" is what promotes a record.
+ */
+export function buildCatalogue(all: LibraryTemplate[]): Catalogue {
+  const templates = all.filter((template) => template.verified);
   const accumulators = new Map<string, Accumulator>();
   const typeTemplates = new Map<string, Set<string>>();
   const typeDirections = new Map<string, Set<Direction>>();

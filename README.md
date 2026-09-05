@@ -29,7 +29,7 @@ src/server/
   db/            schema, migrations, seeding
   integrations/  the model that turns a description into a specification
 src/web/         signing in, the field picker (Mode B), the describe box (Mode A),
-                 export selection, history, accounts
+                 export selection, the repository, history, accounts
 ```
 
 ## The shape of it
@@ -47,6 +47,19 @@ script, and the download waits on an explicit confirmation.
 
 Templates are reference knowledge, not output. Every sheet is composed on the
 fly; the app never hands back a stored file.
+
+## The repository
+
+One store, two shelves. **From the production export** is the 109 scripts WOSG
+had already run - the extraction captured each one's header line, CSV
+parameters and the CSV's heading row, but never the file, so those entries
+describe rather than reopen. **Made in the app** is what has been saved since:
+those carry the request that made them, so they open straight back into the
+picker and download again.
+
+Saving puts a sheet on the shelf. Saying it *imported cleanly* additionally
+makes it evidence: only then does it join the catalogue, and only then does an
+attribute it carries stop being flagged as unverified.
 
 ## Running it
 

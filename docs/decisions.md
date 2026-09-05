@@ -21,6 +21,27 @@ zip that fails at import) and a confirmation before generating (you would be
 deciding without having seen what it produces). The gate sits at the download
 because that is the step immediately before the file reaches HAC.
 
+## The repository is a view over the library, not a second store
+
+Asked for as "a hub of existing load sheets, plus the new ones, kept
+separate". Both shelves are the same table: `origin: 'seed'` is the supplied
+production export, `origin: 'user'` is what has been saved from the app. One
+store, because they are the same knowledge - the library the generator reads -
+and two shelves, because they are different kinds of thing. A supplied record
+describes a script that was run before this app existed and cannot be
+regenerated: the extraction never included the files. A saved record carries
+the request that produced it, so it reopens.
+
+Saving and "it imported cleanly" were separated at the same time. Saving keeps
+a sheet for reuse; only the second makes it evidence the catalogue trusts. That
+keeps the §9b Q1 gate honest - otherwise saving an unrun sheet would quietly
+make its unverified attribute look known and lift the confirmation the download
+waits on.
+
+Removing is an administrator's job, and the supplied export cannot be removed
+at all: it is the reference the whole app reads, and an empty library re-seeds
+itself on the next boot, so deleting one would only look like it worked.
+
 ## §9b Q2 — offering a used attribute to the library
 
 **Settled: a "it imported cleanly" button on a sheet with unverified columns.**

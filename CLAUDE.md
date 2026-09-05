@@ -60,6 +60,14 @@ in `docs/load-sheet-template-library.md`.
   of the script's own macro and written as literals; the validator refuses any
   export query containing a `$`.
 
+- **The catalogue is built from verified records only.** A sheet saved for
+  reuse but not yet run is in the repository and can be reopened, but it is not
+  evidence - letting it into the catalogue would quietly make an unverified
+  attribute look known and lift the confirmation the download waits on. Saying
+  "it imported cleanly" is what promotes a record. `loadLibrary` returns both:
+  `templates` (verified, what the generator copies conventions from) and `all`
+  (everything, for the repository).
+
 - **History keeps the request, not the files.** Reusing an entry regenerates
   against today's library, so a sheet run again next month picks up an
   attribute learned since. Keeping the output would make history a drawer of

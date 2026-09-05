@@ -5,7 +5,7 @@ import {
   fetchItemTypes,
   fetchModes,
   fetchPreview,
-  learnSheet,
+  saveToRepository,
   type AttributeView,
   type ItemType,
   type Preview,
@@ -45,7 +45,9 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
   const [describeEnabled, setDescribeEnabled] = useState(false);
   /** The user has said they checked the unverified attributes exist in SAP Commerce. */
   const [confirmedUnverified, setConfirmedUnverified] = useState(false);
-  const [learned, setLearned] = useState<string[] | null>(null);
+  const [saveNote, setSaveNote] = useState('');
+  const [saveImported, setSaveImported] = useState(false);
+  const [saved, setSaved] = useState<{ learned: string[] } | null>(null);
   const [downloaded, setDownloaded] = useState(false);
 
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -81,7 +83,7 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
     setChosen(request.fields.map((field) => ({ name: field.name, ...(field.variant ? { variant: field.variant } : {}) })));
     setName(request.name);
     setConfirmedUnverified(false);
-    setLearned(null);
+    setSaved(null);
     setDownloaded(false);
     if (request.rows && request.rows.length > 0) {
       // Rows the description carried are shown as text, so they can be checked
@@ -224,12 +226,22 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
     }
   }
 
-  /** The library grows from sheets that actually worked, and only the user can say so. */
-  async function onLearn(): Promise<void> {
+  /**
+   * Putting the sheet on the repository shelf. Saving keeps it for reuse;
+   * ticking that it imported cleanly additionally makes it evidence - which is
+   * what stops an attribute it carries being flagged next time.
+   */
+  async function onSave(): Promise<void> {
     if (!request) return;
+    setError(null);
     try {
-      const result = await learnSheet(request);
-      setLearned(result.learned);
+      const result = await saveToRepository({
+        request,
+        ...(saveNote.trim() ? { description: saveNote.trim() } : {}),
+        imported: saveImported,
+      });
+      setSaved({ learned: result.learned });
+      setSaveNote('');
       fetchAttributes(itemType).then(setAttributes).catch(() => undefined);
     } catch (err) {
       setError((err as Error).message);
@@ -372,21 +384,50 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             </label>
           ) : null}
           {refusal ? <p className="error">{refusal}</p> : null}
-          {downloaded && unverified.length > 0 && learned === null ? (
-            <p className="learn">
-              <button type="button" onClick={() => void onLearn()}>
-                It imported cleanly — add to the library
+          {preview && saved === null ? (
+            <div className="save-box">
+              <h2>Keep it</h2>
+              <label className="stacked">
+                What is this one for? (optional)
+                <input
+                  type="text"
+                  value={saveNote}
+                  onChange={(event) => setSaveNote(event.target.value)}
+                  placeholder="The one we run every Tuesday"
+                />
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={saveImported}
+                  onChange={(event) => setSaveImported(event.target.checked)}
+                />{' '}
+                It has imported cleanly into SAP Commerce
+                {unverified.length > 0 ? (
+                  <span className="muted">
+                    {' '}
+                    — which would make {unverified.join(', ')} known, and stop{' '}
+                    {unverified.length === 1 ? 'it' : 'them'} being flagged next time.
+                  </span>
+                ) : null}
+              </label>
+              <button type="button" onClick={() => void onSave()} disabled={!request}>
+                Save to the repository
               </button>
-              <span className="muted">
-                Saves this sheet so {unverified.join(', ')} {unverified.length === 1 ? 'is' : 'are'} known next time.
-              </span>
-            </p>
+              {downloaded && unverified.length > 0 ? (
+                <p className="muted">
+                  You have downloaded this one. If it imported, ticking the box above is what teaches the app about{' '}
+                  {unverified.join(', ')}.
+                </p>
+              ) : null}
+            </div>
           ) : null}
-          {learned !== null ? (
+          {saved !== null ? (
             <p className="muted">
-              {learned.length > 0
-                ? `Added to the library: ${learned.join(', ')}. ${learned.length === 1 ? 'It is' : 'They are'} now offered in the field list.`
-                : 'Saved to the library.'}
+              Saved to the repository.
+              {saved.learned.length > 0
+                ? ` ${saved.learned.join(', ')} ${saved.learned.length === 1 ? 'is' : 'are'} now known, and offered in the field list.`
+                : ''}
             </p>
           ) : null}
           <SheetPreview

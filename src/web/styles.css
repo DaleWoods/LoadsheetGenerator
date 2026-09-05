@@ -135,3 +135,15 @@ button.tab.current { background: var(--page); color: var(--ink); }
 .history-entry:last-child { border-bottom: none; }
 .history-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13px; }
 .history-entry p { margin: 3px 0 0; }
+
+.repo-list { list-style: none; margin: 0 0 6px; padding: 0; border: 1px solid var(--line); border-radius: 6px; max-height: 420px; overflow-y: auto; }
+.repo-entry { border-bottom: 1px solid var(--line); }
+.repo-entry:last-child { border-bottom: none; }
+.repo-entry.selected { background: #eef5fa; }
+.repo-open { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; background: none; border: none; color: inherit; padding: 8px 10px; font-weight: 400; }
+.repo-open:hover { background: var(--page); }
+.repo-meta { font-size: 12px; color: var(--muted); }
+.repo-actions { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.save-box { border: 1px solid var(--line); border-radius: 6px; padding: 12px; margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+.save-box h2 { margin: 0; }
+.save-box button { align-self: flex-start; }

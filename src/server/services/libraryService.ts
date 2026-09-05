@@ -17,7 +17,7 @@ interface Row {
 }
 
 /** Cached per connection, so tests running several databases in one process do not share one. */
-const cache = new WeakMap<Db, { templates: LibraryTemplate[]; catalogue: Catalogue }>();
+const cache = new WeakMap<Db, Library>();
 
 function invalidate(db: Db): void {
   cache.delete(db);
@@ -81,7 +81,14 @@ export async function countTemplates(db: Db): Promise<number> {
 }
 
 export interface Library {
+  /**
+   * The records the generator works from: verified ones only. A saved-but-not-
+   * run sheet is in `all`, and in the repository, but it is not something to
+   * copy conventions from.
+   */
   templates: LibraryTemplate[];
+  /** Everything on the shelves, for the repository. */
+  all: LibraryTemplate[];
   catalogue: Catalogue;
 }
 
@@ -89,9 +96,9 @@ export interface Library {
 export async function loadLibrary(db: Db): Promise<Library> {
   const cached = cache.get(db);
   if (cached) return cached;
-  const templates = await listTemplates(db);
-  const catalogue = buildCatalogue(templates);
-  const library = { templates, catalogue };
+  const all = await listTemplates(db);
+  const catalogue = buildCatalogue(all);
+  const library = { templates: all.filter((template) => template.verified), all, catalogue };
   cache.set(db, library);
   return library;
 }

@@ -3,12 +3,20 @@ import { z } from 'zod';
 import type { Db } from '../db/index.js';
 import { NotPackageableError, packageLoadSheet, unverifiedColumns } from '../domain/packageSheet.js';
 import { isResolverConfigured, type Resolver } from '../integrations/anthropic.js';
-import { learnFromSheet } from '../services/libraryLearn.js';
+import { saveToRepository } from '../services/repositoryService.js';
 import { getEntry, listHistory, record } from '../services/historyService.js';
 import { resolveDescription } from '../services/resolveService.js';
 import { generateFromRequest, sheetRequestSchema } from '../services/sheetService.js';
 
 const describeSchema = z.object({ description: z.string().trim().min(3).max(4000) });
+
+const saveSchema = z.object({
+  request: sheetRequestSchema,
+  name: z.string().trim().max(120).optional(),
+  description: z.string().trim().max(600).optional(),
+  /** Ticked when the user has run it and it imported cleanly. */
+  imported: z.boolean().optional(),
+});
 
 /** `resolver` is injectable so the routes can be driven in tests without calling the model. */
 export function sheetRoutes(db: Db, resolver?: Resolver): Router {
@@ -50,18 +58,26 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
     res.json({ entry });
   });
 
-  router.post('/learn', async (req, res) => {
-    const parsed = sheetRequestSchema.safeParse(req.body);
+  // Putting a sheet on the repository shelf. Saving keeps it for reuse; saying
+  // it imported cleanly additionally makes it evidence the catalogue trusts.
+  router.post('/save', async (req, res) => {
+    const parsed = saveSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'That request does not make sense', detail: parsed.error.issues });
       return;
     }
-    const result = await learnFromSheet(db, parsed.data);
+    const result = await saveToRepository(db, {
+      request: parsed.data.request,
+      ...(parsed.data.name ? { name: parsed.data.name } : {}),
+      ...(parsed.data.description ? { description: parsed.data.description } : {}),
+      ...(parsed.data.imported !== undefined ? { imported: parsed.data.imported } : {}),
+      ...(req.user ? { savedBy: req.user.username } : {}),
+    });
     if (req.user) {
-      const sheet = await generateFromRequest(db, parsed.data);
+      const sheet = await generateFromRequest(db, parsed.data.request);
       await record(db, {
-        request: parsed.data,
-        summary: `Saved to the library${result.learned.length > 0 ? `: ${result.learned.join(', ')}` : ''}`,
+        request: parsed.data.request,
+        summary: `Saved to the repository${result.learned.length > 0 ? `, and ${result.learned.join(', ')} is now known` : ''}`,
         filename: sheet.impex.filename,
         direction: sheet.resolved.direction,
         rowCount: sheet.resolved.blocks[0]?.rows.length ?? 0,
@@ -69,7 +85,7 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
         user: req.user,
       });
     }
-    res.json(result);
+    res.status(201).json(result);
   });
 
   router.post('/preview', async (req, res) => {

@@ -11,10 +11,11 @@ import { useEffect, useState } from 'react';
 import { App } from './App.js';
 import { AccountsPanel } from './AccountsPanel.js';
 import { HistoryPanel } from './HistoryPanel.js';
+import { RepositoryPanel } from './RepositoryPanel.js';
 import { LoginPage } from './LoginPage.js';
-import { fetchSession, signOut, type SessionUser, type SheetRequest } from './api.js';
+import { fetchItemTypes, fetchSession, signOut, type ItemType, type SessionUser, type SheetRequest } from './api.js';
 
-type View = 'generator' | 'history' | 'accounts';
+type View = 'generator' | 'repository' | 'history' | 'accounts';
 
 export function Shell(): JSX.Element {
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -22,6 +23,11 @@ export function Shell(): JSX.Element {
   const [view, setView] = useState<View>('generator');
   /** A request picked out of the history, on its way back into the picker. */
   const [reuse, setReuse] = useState<SheetRequest | null>(null);
+  const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
+
+  useEffect(() => {
+    if (user && !user.mustChange) fetchItemTypes().then(setItemTypes).catch(() => undefined);
+  }, [user]);
 
   useEffect(() => {
     fetchSession()
@@ -43,6 +49,13 @@ export function Shell(): JSX.Element {
             onClick={() => setView('generator')}
           >
             Load sheets
+          </button>
+          <button
+            type="button"
+            className={view === 'repository' ? 'tab current' : 'tab'}
+            onClick={() => setView('repository')}
+          >
+            Repository
           </button>
           <button
             type="button"
@@ -75,6 +88,18 @@ export function Shell(): JSX.Element {
         </span>
       </div>
       {view === 'generator' ? <App reuse={reuse} /> : null}
+      {view === 'repository' ? (
+        <div className="app">
+          <RepositoryPanel
+            itemTypes={itemTypes}
+            isAdmin={user.role === 'admin'}
+            onOpen={(request) => {
+              setReuse(request);
+              setView('generator');
+            }}
+          />
+        </div>
+      ) : null}
       {view === 'history' ? (
         <div className="app">
           <HistoryPanel

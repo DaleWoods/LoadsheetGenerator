@@ -194,11 +194,12 @@ describe('the gate on an attribute the library does not know', () => {
   });
 
   it('learns the attribute once the user says it imported cleanly', async () => {
-    const learn = (await (await post('/api/sheets/learn', unknown)).json()) as {
-      template: { id: string };
+    const learn = (await (await post('/api/sheets/save', { request: unknown, imported: true })).json()) as {
+      entry: { id: string; verified: boolean };
       learned: string[];
     };
     expect(learn.learned).toEqual(['isEditorsPick']);
+    expect(learn.entry.verified).toBe(true);
 
     // And now it is a field like any other: no flag, no gate.
     const after = (await (await post('/api/sheets/preview', unknown)).json()) as { unverified: string[] };
@@ -266,5 +267,105 @@ describe('history', () => {
       direction: 'export',
       filename: 'RoundelExport.impex',
     });
+  });
+});
+
+describe('the repository', () => {
+  it('has the supplied export on one shelf', async () => {
+    const body = (await (await get('/api/library/repository')).json()) as {
+      supplied: { name: string; shelf: string; reusable: boolean; columnsOffset: number | null }[];
+      saved: unknown[];
+      totals: { supplied: number };
+    };
+    expect(body.totals.supplied).toBe(109);
+    const seeMoreStyles = body.supplied.find((entry) => entry.name.includes('SeeMoreStyles / Append'))!;
+    expect(seeMoreStyles).toMatchObject({ shelf: 'supplied', columnsOffset: -1 });
+    // The extraction captured what each script was, never the file, so a
+    // supplied record describes rather than reopens.
+    expect(seeMoreStyles.reusable).toBe(false);
+  });
+
+  it('searches by what somebody would remember about a sheet', async () => {
+    const byField = (await (await get('/api/library/repository?search=seeMoreStylesRef')).json()) as {
+      supplied: { name: string }[];
+    };
+    expect(byField.supplied.length).toBeGreaterThan(0);
+
+    const byCsv = (await (await get('/api/library/repository?search=AkamaiRoundels.csv')).json()) as {
+      supplied: { csvFile: string | null }[];
+    };
+    expect(byCsv.supplied[0]!.csvFile).toBe('AkamaiRoundels.csv');
+
+    const byType = (await (await get('/api/library/repository?itemType=Category')).json()) as {
+      supplied: { itemTypes: string[] }[];
+    };
+    expect(byType.supplied.every((entry) => entry.itemTypes.includes('Category'))).toBe(true);
+  });
+
+  it('describes a supplied sheet down to the header line it used', async () => {
+    const body = (await (
+      await get('/api/library/repository/products-site-settings-append-importscript')
+    ).json()) as {
+      entry: { name: string; provenance: string };
+      blocks: { headerLine: string; csvHeaderRow: string[] | null; csv: { columnsOffset: number } | null }[];
+      macros: [string, string][];
+      request: unknown;
+    };
+    expect(body.entry.provenance).toBe('Products/Site Settings/Append/importScript.impex');
+    expect(body.blocks[0]!.headerLine).toContain('INSERT_UPDATE Product;code[unique=true];syncToSite(uid)[mode=append]');
+    expect(body.blocks[0]!.csvHeaderRow?.[0]).toBe('Type (Leave Blank)');
+    expect(body.macros.map(([name]) => name)).toContain('catalogVersion');
+    expect(body.request).toBeNull();
+  });
+
+  it('puts a sheet somebody made on the other shelf, and can open it again', async () => {
+    const request = { name: 'Weekly Metadata', itemType: 'Product', fields: [{ name: 'metaKeywords' }] };
+    const saved = (await (
+      await post('/api/sheets/save', { request, description: 'The one we run every Tuesday.' })
+    ).json()) as { entry: { id: string; shelf: string; verified: boolean; reusable: boolean } };
+    expect(saved.entry).toMatchObject({ shelf: 'saved', reusable: true });
+    // Saved for reuse is not the same as run: it is on the shelf, but it is not
+    // evidence until somebody says it imported cleanly.
+    expect(saved.entry.verified).toBe(false);
+
+    const detail = (await (await get(`/api/library/repository/${saved.entry.id}`)).json()) as {
+      entry: { provenance: string; description?: string };
+      request: { itemType: string; fields: { name: string }[] };
+    };
+    expect(detail.entry.provenance).toContain('Saved by dale');
+    expect(detail.entry.description).toBe('The one we run every Tuesday.');
+    expect(detail.request).toMatchObject({ itemType: 'Product', fields: [{ name: 'metaKeywords' }] });
+  });
+
+  it('does not let a saved-but-unrun sheet make an attribute look known', async () => {
+    const request = { name: 'Not Run Yet', itemType: 'Product', fields: [{ name: 'someBrandNewFlag' }] };
+    await post('/api/sheets/save', { request });
+
+    const preview = (await (await post('/api/sheets/preview', request)).json()) as { unverified: string[] };
+    expect(preview.unverified).toEqual(['someBrandNewFlag']);
+    // And the download is still held behind the confirmation.
+    expect((await post('/api/sheets/package', request)).status).toBe(422);
+  });
+
+  it('refuses to remove anything from the supplied export', async () => {
+    const response = await fetch(`${base}/api/library/repository/categories-append-importscript`, {
+      method: 'DELETE',
+      headers: { cookie },
+    });
+    expect(response.status).toBe(409);
+    expect((await response.json()) as { error: string }).toMatchObject({
+      error: expect.stringContaining('supplied production export'),
+    });
+  });
+
+  it('removes a saved one', async () => {
+    const request = { name: 'Throwaway', itemType: 'Product', fields: [{ name: 'metaKeywords' }] };
+    const saved = (await (await post('/api/sheets/save', { request })).json()) as { entry: { id: string } };
+    const removed = await fetch(`${base}/api/library/repository/${saved.entry.id}`, {
+      method: 'DELETE',
+      headers: { cookie },
+    });
+    expect(removed.status).toBe(200);
+    expect((await get(`/api/library/repository/${saved.entry.id}`)).status).toBe(404);
   });
 });

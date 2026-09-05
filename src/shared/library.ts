@@ -10,6 +10,7 @@
  */
 
 import type { ImpexColumn } from './impex.js';
+import type { ExportSelection } from './spec.js';
 
 export type ImpexOperation = 'INSERT' | 'INSERT_UPDATE' | 'UPDATE' | 'REMOVE';
 
@@ -58,6 +59,23 @@ export interface HeaderBlock {
   csvLabels?: (string | null)[];
 }
 
+/**
+ * What was asked for, kept on a sheet somebody saved.
+ *
+ * The request rather than the files, for the same reason the history keeps it:
+ * opening a saved sheet regenerates it against the library as it stands now.
+ */
+export interface SavedSheetRequest {
+  name: string;
+  itemType: string;
+  fields: { name: string; variant?: string; csvLabel?: string }[];
+  op?: ImpexOperation;
+  intent?: string;
+  rows?: string[][];
+  direction?: Direction;
+  export?: ExportSelection;
+}
+
 export interface LibraryTemplate {
   id: string;
   /** Human name, from the source path: "Products / Site Settings / Append". */
@@ -85,6 +103,17 @@ export interface LibraryTemplate {
    */
   verified: boolean;
   notes?: string;
+  /** What the person who saved it wanted it remembered for. */
+  description?: string;
+  /** Who saved it, on a record added in the app. */
+  savedBy?: string;
+  /**
+   * The request that produced it, on a record saved in the app. Its presence is
+   * what lets the repository open a sheet again rather than only describe it -
+   * the seed records have no request, because they were extracted from scripts
+   * rather than generated.
+   */
+  savedRequest?: SavedSheetRequest;
   createdAt: string;
   updatedAt: string;
 }
