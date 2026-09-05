@@ -1,0 +1,89 @@
+# Render blueprint for the WOSG Load Sheet Generator.
+#
+# In the Render dashboard: New -> Blueprint -> this repository. Render reads
+# this file, creates the database and the web service, and prompts for the
+# values marked `sync: false` below.
+#
+# There are two you must set - a username and a password for the first
+# administrator. Without them the service starts, seeds its library, and nobody
+# can sign in.
+
+databases:
+  - name: loadsheet-db
+    databaseName: loadsheets
+    user: loadsheets
+    # basic-256mb (not free): Render deletes free databases after 30 days. The
+    # library re-seeds itself from the repository on an empty database, so a
+    # deletion is not fatal - what it costs you is everything added since:
+    # attributes learned from sheets that imported cleanly, and any templates
+    # edited in the app. Drop this to `free` knowingly, not by accident.
+    plan: basic-256mb
+
+services:
+  - type: web
+    name: loadsheet-generator
+    runtime: node
+    # starter = 512MB, which is ample: no browser, no image processing, and the
+    # whole library is about 120KB of JSON.
+    plan: starter
+    # --include=dev is required: NODE_ENV=production (below) makes npm skip
+    # devDependencies, and the build needs TypeScript and Vite. Only the build
+    # needs them; the running service uses dependencies alone.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+
+      # --- Database ------------------------------------------------------
+      # Without these the app falls back to SQLite on the local disk, which on
+      # Render is wiped on every deploy and every restart - so the library
+      # would silently reset to the shipped 109 templates each time.
+      - key: DB_DRIVER
+        value: postgres
+      - key: DATABASE_URL
+        fromDatabase:
+          name: loadsheet-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "true"
+
+      # --- The first way in ----------------------------------------------
+      # THE TWO VALUES YOU MUST SET. A fresh database has no accounts, and
+      # sign-in needs one, so the service creates this administrator on boot.
+      # Setting them again later resets that password, which is the way back in
+      # if the only administrator is ever locked out.
+      #
+      # The password needs at least 10 characters; the service refuses to start
+      # with a weaker one rather than running with a guessable administrator.
+      # Everybody else is added in the app, under Accounts.
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+
+      # --- Sessions ------------------------------------------------------
+      # Render serves the app over HTTPS, so the session cookie is marked
+      # secure. Only turn this off to run the built service over plain http
+      # locally.
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+
+      # --- Describing a load sheet in words -------------------------------
+      # Optional. Without a key the field picker works exactly as it does with
+      # one, and the describe box says why it is switched off.
+      #
+      #   ANTHROPIC_API_KEY  from console.anthropic.com -> API keys
+      #
+      # Only the description typed into the box and the app's own catalogue of
+      # item types and attribute names are sent; no SKUs, no CSV data, no
+      # credentials.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # Render injects PORT; the app reads it.

@@ -4,9 +4,11 @@ import { createApp } from '../index.js';
 import { createDb } from '../db/index.js';
 import { migrate } from '../db/migrate.js';
 import { seedLibrary } from '../library/seedLibrary.js';
+import { createUser } from '../services/userService.js';
 import type { Resolver } from '../integrations/anthropic.js';
 
 let base: string;
+let cookie: string;
 
 /** Stands in for the model so the routes can be driven without calling it. */
 const resolver: Resolver = async ({ description }) => ({
@@ -26,24 +28,38 @@ beforeAll(async () => {
   const db = await createDb({ driver: 'sqlite', sqliteFile: ':memory:' });
   await migrate(db);
   await seedLibrary(db);
+  await createUser(db, { username: 'dale', password: 'a-good-long-password', role: 'admin' });
   const app = await createApp(db, resolver);
   const server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+
+  // Everything behind /api needs a session, so the tests hold one.
+  const signIn = await fetch(`${base}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'dale', password: 'a-good-long-password' }),
+  });
+  cookie = (signIn.headers.get('set-cookie') ?? '').split(';')[0]!;
+
   return () => new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
 async function post(path: string, body: unknown): Promise<Response> {
   return fetch(`${base}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', cookie },
     body: JSON.stringify(body),
   });
 }
 
+async function get(path: string): Promise<Response> {
+  return fetch(`${base}${path}`, { headers: { cookie } });
+}
+
 describe('the library endpoints the picker reads', () => {
   it('lists the item types, the largest first', async () => {
-    const body = (await (await fetch(`${base}/api/library/item-types`)).json()) as {
+    const body = (await (await get('/api/library/item-types')).json()) as {
       itemTypes: { itemType: string; attributes: number }[];
     };
     expect(body.itemTypes[0]!.itemType).toBe('Product');
@@ -51,7 +67,7 @@ describe('the library endpoints the picker reads', () => {
   });
 
   it('offers the fields for an item type, with both shapes where there are two', async () => {
-    const body = (await (await fetch(`${base}/api/library/attributes?itemType=Product`)).json()) as {
+    const body = (await (await get('/api/library/attributes?itemType=Product')).json()) as {
       attributes: { attribute: string; variants: { description: string }[]; boolean?: string }[];
     };
     const seeMoreStyles = body.attributes.find((a) => a.attribute === 'seeMoreStylesRef')!;
@@ -65,7 +81,7 @@ describe('the library endpoints the picker reads', () => {
   });
 
   it('asks for an item type rather than guessing one', async () => {
-    expect((await fetch(`${base}/api/library/attributes`)).status).toBe(400);
+    expect((await get('/api/library/attributes')).status).toBe(400);
   });
 });
 
@@ -135,7 +151,7 @@ describe('describing a load sheet in words', () => {
   });
 
   it('says whether describing is switched on at all', async () => {
-    const body = (await (await fetch(`${base}/api/sheets/modes`)).json()) as { describe: boolean };
+    const body = (await (await get('/api/sheets/modes')).json()) as { describe: boolean };
     expect(body.describe).toBe(true);
   });
 
@@ -187,7 +203,7 @@ describe('the gate on an attribute the library does not know', () => {
     expect(after.unverified).toEqual([]);
     expect((await post('/api/sheets/package', unknown)).status).toBe(200);
 
-    const attributes = (await (await fetch(`${base}/api/library/attributes?itemType=Product`)).json()) as {
+    const attributes = (await (await get('/api/library/attributes?itemType=Product')).json()) as {
       attributes: { attribute: string }[];
     };
     expect(attributes.attributes.map((a) => a.attribute)).toContain('isEditorsPick');

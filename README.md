@@ -20,6 +20,7 @@ src/shared/      types and pure functions both halves use, browser included
   csv.ts         CSV reading and writing
   paste.ts       lining pasted rows up with the columns
 src/server/
+  auth/          passwords, and who is allowed through
   library/       the supplied extraction, and turning it into library records
   domain/        catalogue, template matching, house style, resolve, generate,
                  validate, package
@@ -27,7 +28,7 @@ src/server/
   routes/        the HTTP API
   db/            schema, migrations, seeding
   integrations/  the model that turns a description into a specification
-src/web/         the field picker (Mode B) and the describe box (Mode A)
+src/web/         signing in, the field picker (Mode B), the describe box (Mode A)
 ```
 
 ## The shape of it
@@ -60,6 +61,23 @@ npm run build         # server to dist/, UI to dist-web/, then `npm start`
 Defaults to SQLite at `data/loadsheets.db`. Set `DB_DRIVER=postgres` and
 `DATABASE_URL` for a real database. `ANTHROPIC_API_KEY` switches on the
 natural-language mode; it is read from the environment and never committed.
+
+Everything behind `/api` needs a session, so set
+`BOOTSTRAP_ADMIN_USERNAME` and `BOOTSTRAP_ADMIN_PASSWORD` to get the first
+account - a database with nobody in it cannot be signed in to. Setting them
+again resets that password, which is the way back in when the only
+administrator is locked out. Add everyone else in the app, under Accounts.
+Running the built service over plain http locally also needs
+`SESSION_COOKIE_SECURE=false`.
+
+## Deploying
+
+`render.yaml` is a Render blueprint: New -> Blueprint -> this repository.
+It creates the Postgres database and the web service and prompts for the
+administrator username and password, which are the only two values you must
+set. Without `DB_DRIVER=postgres` the app falls back to SQLite on the local
+disk, which Render wipes on every deploy - the library re-seeds itself, but
+anything added since is gone.
 
 ## Before you say it works
 

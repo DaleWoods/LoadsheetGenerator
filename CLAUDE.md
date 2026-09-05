@@ -48,6 +48,12 @@ in `docs/load-sheet-template-library.md`.
   bug surfaces the same way a bad specification does. A finding at error
   severity stops the zip.
 
+- **Everything behind `/api` needs a session, and the guard is applied to the
+  whole surface** in `index.ts`, not route by route - so a route added later is
+  protected by default. `requireSignedIn` is a session alone (what changing your
+  own password needs); `requireUser` also insists the password is the user's
+  own rather than one an administrator handed out.
+
 - **Schema changes go in a migration**, never in `schema.sql`. The baseline is
   applied first and the migrations after it, so a column in both breaks a fresh
   database.

@@ -109,3 +109,22 @@ button.link:hover:not(:disabled) { color: var(--accent); }
 .confirm { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; background: #fdf5e4; border-left: 3px solid var(--warning); padding: 9px 11px; border-radius: 5px; margin-bottom: 10px; }
 .confirm input { margin-top: 3px; }
 .learn { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 24px; background: #fff; border-bottom: 1px solid var(--line); }
+.topbar nav { display: flex; gap: 4px; }
+button.tab { background: none; border: none; color: var(--muted); font-weight: 500; padding: 6px 12px; border-radius: 5px; }
+button.tab:hover { background: var(--page); }
+button.tab.current { background: var(--page); color: var(--ink); }
+.who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+
+.signin { display: flex; justify-content: center; padding: 8vh 24px; }
+.signin .panel { width: min(380px, 100%); display: flex; flex-direction: column; gap: 12px; }
+.signin h1 { font-size: 19px; margin: 0; }
+.signin button[type="submit"] { margin-top: 4px; }
+
+.accounts { list-style: none; margin: 0 0 20px; padding: 0; border: 1px solid var(--line); border-radius: 6px; }
+.account { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; flex-wrap: wrap; }
+.account:last-child { border-bottom: none; }
+.account.disabled { opacity: 0.55; }
+.add-account { display: flex; flex-direction: column; gap: 10px; max-width: 380px; }
+.add-account button { align-self: flex-start; }

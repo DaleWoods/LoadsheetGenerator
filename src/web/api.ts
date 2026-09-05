@@ -88,12 +88,95 @@ export interface SheetRequest {
   confirmedUnverified?: boolean;
 }
 
+export interface SessionUser {
+  username: string;
+  displayName: string;
+  role: 'admin' | 'member';
+  mustChange: boolean;
+}
+
+export interface Account {
+  id: string;
+  username: string;
+  displayName: string;
+  role: 'admin' | 'member';
+  disabled: boolean;
+  mustChange: boolean;
+  lastSeenAt: string | null;
+}
+
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as { error?: string };
     throw new Error(body.error ?? `Request failed (${response.status})`);
   }
   return (await response.json()) as T;
+}
+
+/** The signed-in user, or null. A 403 with mustChange is still a signed-in user. */
+export async function fetchSession(): Promise<SessionUser | null> {
+  const response = await fetch('/api/auth/me');
+  if (response.status === 401) return null;
+  const body = (await response.json()) as { user: SessionUser };
+  return body.user;
+}
+
+export async function signIn(username: string, password: string): Promise<SessionUser> {
+  const body = await json<{ user: SessionUser }>(
+    await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    }),
+  );
+  return body.user;
+}
+
+export async function signOut(): Promise<void> {
+  await fetch('/api/auth/logout', { method: 'POST' });
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<SessionUser> {
+  const body = await json<{ user: SessionUser }>(
+    await fetch('/api/auth/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+  );
+  return body.user;
+}
+
+export async function fetchUsers(): Promise<Account[]> {
+  const body = await json<{ users: Account[] }>(await fetch('/api/users'));
+  return body.users;
+}
+
+export async function createAccount(input: {
+  username: string;
+  displayName?: string;
+  password: string;
+}): Promise<void> {
+  await json(
+    await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export async function updateAccount(
+  id: string,
+  patch: { password?: string; disabled?: boolean; role?: 'admin' | 'member' },
+): Promise<void> {
+  await json(
+    await fetch(`/api/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }),
+  );
 }
 
 export async function fetchItemTypes(): Promise<ItemType[]> {

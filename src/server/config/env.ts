@@ -26,5 +26,17 @@ export const env = {
    * natural-language mode is off and the field picker still works.
    */
   anthropicApiKey: optional('ANTHROPIC_API_KEY'),
-  sessionSecret: optional('SESSION_SECRET'),
+  /** Off only for local http; a session cookie should not travel in the clear. */
+  cookieSecure: flag('SESSION_COOKIE_SECURE', optional('NODE_ENV') === 'production'),
+  /**
+   * The first way in. A fresh database has no accounts and sign-in needs one,
+   * so these create an administrator on boot - and setting them again resets
+   * that password, which is the way back when the only administrator is locked
+   * out.
+   */
+  bootstrapAdmin: {
+    username: optional('BOOTSTRAP_ADMIN_USERNAME'),
+    password: optional('BOOTSTRAP_ADMIN_PASSWORD'),
+    displayName: optional('BOOTSTRAP_ADMIN_NAME'),
+  },
 };
