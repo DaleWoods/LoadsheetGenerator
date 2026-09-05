@@ -52,8 +52,12 @@ export function AccountsPanel(): JSX.Element {
   }
 
   return (
-    <section className="panel">
-      <h2>Accounts</h2>
+    <>
+      <div className="page-head">
+        <h1>Accounts</h1>
+        <p>Everybody who can use the app. A password you set here has to be replaced by its owner on first use.</p>
+      </div>
+      <section className="card">
 
       <ul className="accounts">
         {users.map((user) => (
@@ -90,7 +94,7 @@ export function AccountsPanel(): JSX.Element {
       </ul>
 
       <form className="add-account" onSubmit={(event) => void add(event)}>
-        <h2>Add somebody</h2>
+        <h2 className="step">Add somebody</h2>
         <label className="stacked">
           Username
           <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -110,6 +114,7 @@ export function AccountsPanel(): JSX.Element {
 
       {error ? <p className="error">{error}</p> : null}
       {note ? <p className="muted">{note}</p> : null}
-    </section>
+      </section>
+    </>
   );
 }

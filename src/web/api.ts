@@ -272,7 +272,9 @@ export interface RepositoryDetail {
   request: SheetRequest | null;
 }
 
-export async function fetchRepository(query: { search?: string; itemType?: string } = {}): Promise<{
+export async function fetchRepository(
+  query: { search?: string; itemType?: string; direction?: string } = {},
+): Promise<{
   supplied: RepositoryEntry[];
   saved: RepositoryEntry[];
   totals: { supplied: number; saved: number };
@@ -280,6 +282,7 @@ export async function fetchRepository(query: { search?: string; itemType?: strin
   const params = new URLSearchParams();
   if (query.search) params.set('search', query.search);
   if (query.itemType) params.set('itemType', query.itemType);
+  if (query.direction) params.set('direction', query.direction);
   return json(await fetch(`/api/library/repository?${params.toString()}`));
 }
 

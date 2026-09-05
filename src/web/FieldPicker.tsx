@@ -83,7 +83,7 @@ export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX
       <input
         className="search"
         type="search"
-        placeholder={`Search ${attributes.length} fields`}
+        placeholder={`Search ${attributes.length} fields — try “price” or “delivery”`}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         aria-label="Search fields"
@@ -105,8 +105,9 @@ export function FieldPicker({ attributes, chosen, inUse, onChange }: Props): JSX
                 />
                 <span className="field-label">{attribute.label}</span>
                 <code>{attribute.attribute}</code>
+                <span className="field-spacer" />
                 <TypeBadge attribute={attribute} />
-                {attribute.keyColumn ? <span className="badge badge-key">key, added for you</span> : null}
+                {attribute.keyColumn ? <span className="badge badge-key">added for you</span> : null}
               </label>
 
               {picked && attribute.variants.length > 1 ? (

@@ -92,3 +92,35 @@ attribute it does not have is flagged unverified, and a column shape the library
 has never written is dropped in favour of the one the closest sheet uses. This
 is §6.1 read strictly - a hallucinated modifier should have nothing to travel
 through.
+
+## The app is written for somebody who does not read ImpEx
+
+The people who need a load sheet are merchandisers and e-commerce staff; the
+people who read ImpEx are a subset of them. So the interface leads with what a
+thing *does* and keeps the script itself one click away rather than in front:
+
+- The build page is seven numbered steps rather than a wall of controls.
+- The generated CSV is rendered as a spreadsheet, because a line of commas is
+  not something anybody can check. The `.impex` is behind a disclosure.
+- A validator finding is headed "Fix this" / "Worth a look" / "For
+  information" rather than error / warning / info.
+- A repository entry leads with a sentence - "Loads 2 fields onto Product
+  records, from a CSV" - and drops the file path, the CSV name and the column
+  offset from the card face. All three are still in the panel beside it, which
+  is where somebody who wants them is looking.
+
+None of this hides a decision the user has to make. The unverified-attribute
+tick and the download button stay together and stay plain.
+
+## The repository is two scrolling panes, not one long page
+
+109 sheets rendered as one page ran to about 17,000 pixels, and opening one
+near the bottom put its explanation a screen and a half above the click. The
+list now scrolls inside its own pane beside a detail panel that stays put, and
+the entries sit under their folder - "Akamai", "C&C Restriction", "TrueFalse" -
+because that is the name the team already uses for that work. Within a folder
+the repeated prefix is dropped from each name, so the title carries the part
+that distinguishes it.
+
+The list resets to the top when the search or a filter changes; leaving it
+where it was put the first match half under a sticky heading.

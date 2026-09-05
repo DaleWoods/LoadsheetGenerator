@@ -59,15 +59,15 @@ export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
         className="paste"
         value={description}
         onChange={(event) => setDescription(event.target.value)}
-        placeholder={`What do you need to load?\n\ne.g. ${EXAMPLES[0]}`}
+        placeholder={`What do you need?  For example:\n\n· ${EXAMPLES[0]}\n· ${EXAMPLES[1]}\n· ${EXAMPLES[2]}`}
         aria-label="Describe the load sheet"
       />
       <div className="describe-actions">
         <button type="button" onClick={() => void run()} disabled={working || description.trim().length < 3}>
-          {working ? 'Working it out…' : 'Work out the load sheet'}
+          {working ? 'Working it out…' : 'Work it out'}
         </button>
         {resolution === null && !working ? (
-          <span className="muted">It fills in the fields below; you can change anything before downloading.</span>
+          <span className="muted">Nothing is generated until you have seen it — and you can change any of it.</span>
         ) : null}
       </div>
 

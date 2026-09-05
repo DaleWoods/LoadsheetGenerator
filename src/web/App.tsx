@@ -249,21 +249,30 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
   }
 
   return (
-    <div className="app">
-      <header>
-        <h1>Load Sheet Generator</h1>
-        <p className="muted">
-          Builds the ImpEx script and its matching CSV from what WOSG has loaded before. The upload into HAC stays
-          yours.
+    <div className="page">
+      <div className="page-head">
+        <h1>Build a load sheet</h1>
+        <p>
+          Pick what you need and the app writes the ImpEx script and its matching CSV the way the team already writes
+          them. Uploading into HAC stays your step.
         </p>
-      </header>
+      </div>
+
+      {describeEnabled ? (
+        <section className="card" style={{ marginBottom: 18 }}>
+          <h2 className="step" style={{ marginTop: 0 }}>
+            In a hurry? Just say what you need
+            <span className="step-hint">it fills the steps below in for you</span>
+          </h2>
+          <DescribeBox enabled={describeEnabled} onResolved={applyResolution} />
+        </section>
+      ) : null}
 
       <div className="columns">
-        <section className="panel">
-          <h2>Describe it</h2>
-          <DescribeBox enabled={describeEnabled} onResolved={applyResolution} />
-
-          <h2>1. What are you doing?</h2>
+        <section className="card">
+          <h2 className="step" style={{ marginTop: 0 }}>
+            <span className="step-number">1</span> What are you doing?
+          </h2>
           <div className="choices">
             <label>
               <input type="radio" checked={direction === 'import'} onChange={() => setDirection('import')} />
@@ -274,6 +283,10 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
               Pulling data out of it
             </label>
           </div>
+
+          <h2 className="step">
+            <span className="step-number">2</span> What kind of record?
+          </h2>
           <label className="stacked">
             Item type
             <select
@@ -292,12 +305,17 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             </select>
           </label>
 
-          <h2>2. Which fields?</h2>
+          <h2 className="step">
+            <span className="step-number">3</span> Which fields?
+            <span className="step-hint">the key is added for you</span>
+          </h2>
           <FieldPicker attributes={attributes} chosen={chosen} inUse={inUse} onChange={setChosen} />
 
           {chosen.length > 0 ? (
             <>
-              <h2>The columns, in order</h2>
+              <h2 className="step">
+                <span className="step-number">4</span> The columns, in order
+              </h2>
               <ChosenFields
                 chosen={chosen}
                 attributes={attributes}
@@ -308,8 +326,10 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
           ) : null}
         </section>
 
-        <section className="panel">
-          <h2>3. Name it</h2>
+        <section className="card">
+          <h2 className="step" style={{ marginTop: 0 }}>
+            <span className="step-number">5</span> Name it
+          </h2>
           <label className="stacked">
             Load sheet name
             <input
@@ -320,7 +340,9 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             />
           </label>
 
-          <h2>4. {direction === 'export' ? 'Which records' : 'The data'}</h2>
+          <h2 className="step">
+            <span className="step-number">6</span> {direction === 'export' ? 'Which records to pull' : 'The rows'}
+          </h2>
           {direction === 'export' ? (
             <ExportPanel
               selection={selection}
@@ -368,7 +390,9 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             </>
           ) : null}
 
-          <h2>5. Check it</h2>
+          <h2 className="step">
+            <span className="step-number">7</span> Check it, then take it
+          </h2>
           {unverified.length > 0 ? (
             <label className="confirm">
               <input
@@ -384,9 +408,19 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             </label>
           ) : null}
           {refusal ? <p className="error">{refusal}</p> : null}
+          <SheetPreview
+            preview={preview}
+            pending={pending}
+            error={error}
+            onDownload={() => void onDownload()}
+            downloading={downloading}
+            blocked={unverified.length > 0 && !confirmedUnverified}
+          />
           {preview && saved === null ? (
             <div className="save-box">
-              <h2>Keep it</h2>
+              <h2 className="step" style={{ marginTop: 0 }}>
+                Keep it for next time
+              </h2>
               <label className="stacked">
                 What is this one for? (optional)
                 <input
@@ -430,14 +464,6 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
                 : ''}
             </p>
           ) : null}
-          <SheetPreview
-            preview={preview}
-            pending={pending}
-            error={error}
-            onDownload={() => void onDownload()}
-            downloading={downloading}
-            blocked={unverified.length > 0 && !confirmedUnverified}
-          />
         </section>
       </div>
     </div>

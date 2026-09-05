@@ -36,19 +36,25 @@ export function Shell(): JSX.Element {
       .finally(() => setKnown(true));
   }, []);
 
-  if (!known) return <div className="app" />;
+  if (!known) return <div className="page" />;
   if (!user || user.mustChange) return <LoginPage user={user} onSignedIn={setUser} />;
 
   return (
     <>
       <div className="topbar">
+        <span className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            LS
+          </span>
+          <span className="brand-name">Load Sheets</span>
+        </span>
         <nav>
           <button
             type="button"
             className={view === 'generator' ? 'tab current' : 'tab'}
             onClick={() => setView('generator')}
           >
-            Load sheets
+            Build one
           </button>
           <button
             type="button"
@@ -89,7 +95,7 @@ export function Shell(): JSX.Element {
       </div>
       {view === 'generator' ? <App reuse={reuse} /> : null}
       {view === 'repository' ? (
-        <div className="app">
+        <div className="page">
           <RepositoryPanel
             itemTypes={itemTypes}
             isAdmin={user.role === 'admin'}
@@ -101,7 +107,7 @@ export function Shell(): JSX.Element {
         </div>
       ) : null}
       {view === 'history' ? (
-        <div className="app">
+        <div className="page">
           <HistoryPanel
             onReuse={(request) => {
               setReuse(request);
@@ -111,7 +117,7 @@ export function Shell(): JSX.Element {
         </div>
       ) : null}
       {view === 'accounts' ? (
-        <div className="app">
+        <div className="page">
           <AccountsPanel />
         </div>
       ) : null}

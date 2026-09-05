@@ -36,8 +36,15 @@ export function HistoryPanel({ onReuse }: Props): JSX.Element {
   }, [mine]);
 
   return (
-    <section className="panel">
-      <h2>Recently generated</h2>
+    <>
+      <div className="page-head">
+        <h1>What has been built</h1>
+        <p>
+          Every load sheet that has been downloaded. Using one again rebuilds it from what was asked for, so it picks up
+          anything the app has learned since.
+        </p>
+      </div>
+      <section className="card">
       <div className="choices">
         <label>
           <input type="radio" checked={!mine} onChange={() => setMine(false)} />
@@ -73,6 +80,7 @@ export function HistoryPanel({ onReuse }: Props): JSX.Element {
           </li>
         ))}
       </ul>
-    </section>
+      </section>
+    </>
   );
 }

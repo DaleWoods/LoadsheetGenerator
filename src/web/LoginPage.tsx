@@ -47,13 +47,19 @@ export function LoginPage({ user, onSignedIn }: Props): JSX.Element {
 
   return (
     <div className="signin">
-      <form className="panel" onSubmit={(event) => void submit(event)}>
-        <h1>Load Sheet Generator</h1>
+      <form className="card" onSubmit={(event) => void submit(event)}>
+        <span className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            LS
+          </span>
+          <span className="brand-name">Load Sheet Generator</span>
+        </span>
+        <h1>Sign in</h1>
         {mustChange ? (
           <>
             <p className="muted">
-              You are signed in as {user?.displayName}. This password was set by somebody else — choose your own before
-              carrying on.
+              Signed in as {user?.displayName}. This password was set by somebody else — choose your own before carrying
+              on.
             </p>
             <label className="stacked">
               The password you were given
@@ -70,7 +76,9 @@ export function LoginPage({ user, onSignedIn }: Props): JSX.Element {
           </>
         ) : (
           <>
-            <p className="muted">This is an internal tool. Sign in with the account you were given.</p>
+            <p className="muted">
+              An internal tool for building SAP Commerce load sheets. Sign in with the account you were given.
+            </p>
             <label className="stacked">
               Username
               <input
