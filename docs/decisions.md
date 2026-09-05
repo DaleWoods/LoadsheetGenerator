@@ -155,3 +155,33 @@ Three things followed from it:
 
 The generator needed no change: given the right specification it already wrote
 both columns, declared both macros and gave them distinct CSV headings.
+
+## A sheet is filled in as far as the request goes, and no further
+
+"I want to add Goldsmiths to display on site for 10 SKUs" produced a perfect
+ImpEx script and a CSV containing nothing but headings. The request does not
+name the SKUs — nothing can invent those — but it names the value for every one
+of the ten rows, and typing `Goldsmiths_UK` ten times by hand is the work the
+app exists to remove.
+
+The resolver now fills every cell the request gives it and leaves the rest
+empty, returning as many rows as the request says (one, when it does not say,
+so there is a shape to copy down). The rule it must not break is unchanged: a
+cell is left empty rather than guessed at, and a code, SKU or value the request
+does not contain is never invented.
+
+An empty key column is normally an error that refuses the zip, and should be —
+a sheet somebody believes is finished cannot match anything without it. So the
+validator distinguishes the two cases: **every** key cell empty in **every**
+row is a sheet waiting to be finished, and gets a warning naming the columns
+still to fill in; a row that lost its key among rows that have one is the old
+error, unchanged. That is worked out from the rows themselves rather than
+carried on a flag, because the rows stay editable right up to the download —
+pasting the SKUs in has to end it, and deleting one has to start it.
+
+The warning says the filled values came from what was asked for rather than
+from SAP Commerce. It has to: the app cannot check that `Goldsmiths_UK` is the
+site uid, only that the request asked for Goldsmiths. That is the same bargain
+the unverified attributes strike — generate it, show it, mark it — and it is
+better than a blank column, which hides the same guess inside somebody's head
+instead.

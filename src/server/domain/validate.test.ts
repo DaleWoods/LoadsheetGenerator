@@ -100,16 +100,40 @@ describe('the checks that stop a broken zip', () => {
     expect(out.packageable).toBe(true);
   });
 
-  it('catches a row with no key, and a row of the wrong width', () => {
-    const out = generateLoadSheet(flagSpec([['', 'TRUE']]), context, at);
-    expect(out.findings.find((f) => f.code === 'csv.keyEmpty')).toMatchObject({ severity: 'error', row: 2 });
+  it('catches one row that lost its key among rows that have one', () => {
+    const out = generateLoadSheet(flagSpec([['17331268', 'TRUE'], ['', 'TRUE']]), context, at);
+    expect(out.findings.find((f) => f.code === 'csv.keyEmpty')).toMatchObject({ severity: 'error', row: 3 });
+    expect(out.packageable).toBe(false);
+  });
 
+  it('catches a row of the wrong width', () => {
+    const out = generateLoadSheet(flagSpec([['17331268', 'TRUE']]), context, at);
     const short = validate({
       resolved: out.resolved,
       impex: out.impex,
       csvs: [{ ...out.csvs[0]!, content: `${out.csvs[0]!.content.split('\r\n')[0]}\r\n,17331268\r\n` }],
     });
     expect(short.find((f) => f.code === 'csv.rowWidth')).toMatchObject({ severity: 'error' });
+  });
+
+  it('treats rows with the value filled and every key blank as a sheet to finish', () => {
+    // "Add Goldsmiths to display on site for 10 SKUs" names the value for
+    // every row and none of the SKUs. Writing the headings only made somebody
+    // type the same value ten times by hand; refusing the zip over the empty
+    // key would make the app useless for the request it was given.
+    const out = generateLoadSheet(flagSpec([['', 'TRUE'], ['', 'TRUE']]), context, at);
+
+    expect(out.findings.find((f) => f.code === 'csv.keyEmpty')).toBeUndefined();
+    expect(out.packageable).toBe(true);
+
+    const pending = out.findings.find((f) => f.code === 'csv.rowsPending')!;
+    expect(pending.severity).toBe('warning');
+    // It has to name what is still missing, or it is just a shrug.
+    expect(pending.message).toContain('"SKU"');
+    expect(pending.message).toContain('check the values already there');
+
+    // And the values it did write are really in the file.
+    expect(out.csvs[0]!.content.split('\r\n')[1]).toBe(',,TRUE,');
   });
 
   it('refuses a row that is short rather than filling in the gap', () => {

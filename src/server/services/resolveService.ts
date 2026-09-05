@@ -139,8 +139,23 @@ export async function resolveDescription(
     };
   }
 
-  const rows = resolution.rows ?? undefined;
-  if (rows && rows.length > 0) notes.push(`Took ${rows.length} row${rows.length === 1 ? '' : 's'} from your description.`);
+  const rows = (resolution.rows ?? undefined)
+    // A row of nothing but empty cells is a row the model could fill in none
+    // of, and it would only be noise in the CSV and a width to keep aligned.
+    ?.filter((row) => row.some((cell) => cell.trim() !== ''));
+
+  // Rows with the key left blank are a template the app started, not a sheet
+  // it finished: "add Goldsmiths to display on site for 10 SKUs" gives the
+  // value for every row and none of the SKUs. The generator works this out for
+  // itself from the rows it is given, so this only changes what is said here.
+  const pending = rows !== undefined && rows.length > 0 && rows.every((row) => (row[0] ?? '').trim() === '');
+  if (rows && rows.length > 0) {
+    notes.push(
+      pending
+        ? `Started ${rows.length} row${rows.length === 1 ? '' : 's'} from your description, with the key left for you to paste in.`
+        : `Took ${rows.length} row${rows.length === 1 ? '' : 's'} from your description.`,
+    );
+  }
 
   // An export needs to say which records to pull, and the app will not invent
   // that: without it there is nothing to generate but a query over everything.

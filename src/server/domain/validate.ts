@@ -319,6 +319,47 @@ function validateCsvBlock(
     }
   });
 
+  /*
+   * Rows that fill in some columns and leave every key column empty are a
+   * template somebody is going to finish - "add Goldsmiths to display on site
+   * for 10 SKUs" names the value for every row and none of the SKUs - rather
+   * than a sheet they think is done. Worked out from the rows themselves
+   * rather than carried on a flag, because the rows are editable all the way
+   * to the download: pasting the SKUs in has to end this, and adding a row
+   * without one has to start it.
+   *
+   * Every key column empty in every row, not some: a paste that lost one SKU
+   * is a mistake and keeps the error it has always had.
+   */
+  const dataRows = rows.slice(1);
+  const rowsPending =
+    dataRows.length > 0 &&
+    block.columns.some((column) => column.unique) &&
+    block.columns.every(
+      (column, index) =>
+        !column.unique || dataRows.every((row) => (row[index + dataOffset] ?? '').trim() === ''),
+    );
+
+  // Said once, plainly, because it is the whole state of the sheet: the app has
+  // written what the description gave it and the rest is the user's to paste
+  // in. Naming the columns still empty is what stops it being uploaded as is.
+  if (rowsPending) {
+    const waiting = block.columns
+      .filter((column, index) => dataRows.every((row) => (row[index + dataOffset] ?? '').trim() === ''))
+      .filter((column) => column.column.kind !== 'macro')
+      .map((column) => `"${column.label}"`);
+    add({
+      severity: 'warning',
+      code: 'csv.rowsPending',
+      message:
+        `${dataRows.length} row${dataRows.length === 1 ? '' : 's'} in ${csv.file} ${dataRows.length === 1 ? 'is' : 'are'} only partly filled in` +
+        (waiting.length > 0
+          ? `. Fill in ${waiting.join(' and ')} before importing, and check the values already there - they came from what was asked for, not from SAP Commerce.`
+          : '. Check the values before importing - they came from what was asked for, not from SAP Commerce.'),
+      block: blockIndex,
+    });
+  }
+
   rows.slice(1).forEach((row, index) => {
     const rowNumber = index + 2;
     if (row.length !== headerRow.length) {
@@ -334,14 +375,22 @@ function validateCsvBlock(
     block.columns.forEach((column, columnIndex) => {
       const value = row[columnIndex + dataOffset] ?? '';
       if (column.unique && value.trim() === '') {
-        add({
-          severity: 'error',
-          code: 'csv.keyEmpty',
-          message: `${csv.file} row ${rowNumber} has no value in "${column.label}", which is the key ImpEx matches on.`,
-          block: blockIndex,
-          column: columnIndex,
-          row: rowNumber,
-        });
+        // An empty key normally refuses the zip, and should: a sheet somebody
+        // believes is finished cannot match anything without it. Rows the app
+        // started from a description are the other case - "add Goldsmiths to
+        // display on site for 10 SKUs" names the value for every row and none
+        // of the keys - and there the empty key is the work left to do, not a
+        // mistake. Said once for the sheet rather than once per row.
+        if (!rowsPending) {
+          add({
+            severity: 'error',
+            code: 'csv.keyEmpty',
+            message: `${csv.file} row ${rowNumber} has no value in "${column.label}", which is the key ImpEx matches on.`,
+            block: blockIndex,
+            column: columnIndex,
+            row: rowNumber,
+          });
+        }
       }
       // A value in a column WOSG heads "(Leave Blank)" is almost always a row
       // that has slipped a column, which is the failure this app exists to

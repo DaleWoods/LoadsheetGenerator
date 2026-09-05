@@ -81,7 +81,7 @@ const resolutionSchema = z.object({
     .array(z.array(z.string()))
     .nullable()
     .describe(
-      'Data rows, but only when the request actually contains the values - a list of SKUs and what to set. One array per row: the key first, then one value per field, in the same order. Never invent codes, SKUs or values that are not in the request.',
+      'Data rows. One array per row: the key first, then one value per field, in the same order. Fill in every cell the request gives you and leave the rest as empty strings - a request that names what to set but not which records still gets rows, with the key left blank for the user to paste in. Never invent codes, SKUs or values the request does not give you.',
     ),
   clarification: z
     .string()
@@ -103,7 +103,10 @@ Work from the catalogue you are given, which is everything the app knows:
 - Use an attribute name exactly as the catalogue spells it when the request means that attribute. The request will often describe a field rather than name it ("the flag that hides the manufacturer part number" is isManufacturerProductNumberHidden).
 - When the request names something the catalogue does not have, keep the name the person used and set inCatalogue false. Do not quietly substitute a name that looks similar: the app tells them what it is close to, and a silent correction would be worse than either. A new attribute is a normal thing to ask for; it just gets flagged.
 - Do not add fields the request did not ask for. The key column is written for you - never include it.
-- Only fill in rows when the request contains the actual values. A request that says "for these SKUs: 17331268, 17331097" has rows; one that says "we will paste the SKUs in later" does not.
+- Fill in as much of the sheet as the request gives you, and leave the rest blank. This is most of the value of the app: "add Goldsmiths to display on site for 10 SKUs" does not name the SKUs, but it names the value for every row, so return 10 rows with the key empty and that value in its column. Do not stop at the headings because one column is unknown.
+  - Rows the request gives outright ("for these SKUs: 17331268, 17331097") are filled in completely.
+  - When the request says how many records but not which, return that many rows. When it says neither, return one, so there is an example of the shape to copy down.
+  - Leave a cell empty rather than guessing at it, and never invent a code, a SKU or a value the request does not give you. An empty cell is the user's to fill in; a wrong one is a bad import.
 - Booleans are written TRUE and FALSE.
 - A localized attribute wanted in more than one language is one entry per language, each with the shape for that language set in variant. The house convention writes the primary language as \`[lang=$lang]\` and the US one as \`[lang=$lang2]\`, and the catalogue lists the shapes it has. One entry produces one column, so a request for UK and US descriptions that returns a single description field gives them half the sheet.
 - An export pulls data out rather than loading it in: it has no rows going in, and it needs to say which records to pull - a list of codes the request names, a code wildcard, or a wildcard on another attribute. The columns are still chosen the same way.

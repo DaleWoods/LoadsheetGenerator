@@ -191,6 +191,39 @@ describe('what the app does with the model answer', () => {
     expect(resolution.notes.join(' ')).toContain('second copy');
   });
 
+  it('starts the rows when the description names the value but not the records', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'I want to add goldsmiths to display on site for 10 skus',
+      answering({
+        name: 'Goldsmiths Display On Site',
+        fields: [field('syncToSite', { variant: 'syncToSite(uid)[mode=append]' })],
+        rows: Array.from({ length: 10 }, () => ['', 'Goldsmiths_UK']),
+      }),
+    );
+
+    expect(resolution.request!.rows).toHaveLength(10);
+    expect(resolution.notes.join(' ')).toContain('left for you to paste in');
+
+    // The point of it: the column the description named is written, the key is
+    // not, and the sheet is still downloadable.
+    const sheet = await generateFromRequest(db, resolution.request!);
+    const [heading, first] = sheet.csvs[0]!.content.split('\r\n');
+    expect(heading).toContain('Display On Site');
+    expect(first).toBe(',,Goldsmiths_UK,');
+    expect(sheet.packageable).toBe(true);
+    expect(sheet.findings.find((f) => f.code === 'csv.rowsPending')?.severity).toBe('warning');
+  });
+
+  it('drops a row the model could fill nothing into', async () => {
+    const resolution = await resolveDescription(
+      db,
+      'Set the name for some products',
+      answering({ fields: [field('name')], rows: [['', ''], ['17331268', 'Rolex']] }),
+    );
+    expect(resolution.request!.rows).toEqual([['17331268', 'Rolex']]);
+  });
+
   it('carries rows through when the description had the values in it', async () => {
     const resolution = await resolveDescription(
       db,
