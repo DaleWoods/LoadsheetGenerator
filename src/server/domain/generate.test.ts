@@ -139,6 +139,20 @@ describe('generating an import load sheet', () => {
     expect(out.csvs[0]!.content).toContain('Home Delivery Available on site – Append');
   });
 
+  it('writes the primary language when a sheet carries both', () => {
+    // The Metadata sheet writes metaDescription twice, once per language. The
+    // first is the primary; taking the later one would produce a sheet that
+    // only ever writes the US text, and nothing on screen would say so.
+    const out = generate(
+      composeSpec(
+        { name: 'Product Metadata', itemType: 'Product', fields: [{ name: 'metaDescription' }, { name: 'metaKeywords' }] },
+        context,
+      ),
+    );
+    expect(out.impex.content).toContain('metaDescription[lang=$lang];metaKeywords[lang=$lang];');
+    expect(out.impex.content).not.toContain('[lang=$lang2]');
+  });
+
   it('keys a VariantProduct on its parent and its own code', () => {
     const out = generate(
       composeSpec({ name: 'Variant Names', itemType: 'VariantProduct', fields: [{ name: 'name' }] }, context),

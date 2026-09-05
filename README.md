@@ -26,7 +26,8 @@ src/server/
   services/      the library store, and one request to one load sheet
   routes/        the HTTP API
   db/            schema, migrations, seeding
-src/web/         the field picker (Mode B)
+  integrations/  the model that turns a description into a specification
+src/web/         the field picker (Mode B) and the describe box (Mode A)
 ```
 
 ## The shape of it
@@ -35,10 +36,12 @@ src/web/         the field picker (Mode B)
 
 Both input modes produce a specification object and nothing else. The field
 picker builds one from ticked fields; the natural-language mode resolves a
-sentence into one. Neither writes ImpEx text - that happens once, in
-`domain/generate.ts`, from a specification whose columns have been checked
-against the library. An attribute the library does not have still generates, but
-it is marked unverified on screen and commented in the script.
+sentence into one - and its result lands in the field picker rather than going
+straight to a download, so it can be checked and changed. Neither writes ImpEx
+text: that happens once, in `domain/generate.ts`, from a specification whose
+columns have been checked against the library. An attribute the library does not
+have still generates, but it is marked unverified on screen, commented in the
+script, and the download waits on an explicit confirmation.
 
 Templates are reference knowledge, not output. Every sheet is composed on the
 fly; the app never hands back a stored file.

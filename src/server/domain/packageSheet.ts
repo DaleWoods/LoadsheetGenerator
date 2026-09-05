@@ -27,8 +27,47 @@ export interface PackagedLoadSheet {
   body: Buffer;
 }
 
-export async function packageLoadSheet(sheet: GeneratedLoadSheet): Promise<PackagedLoadSheet> {
+export interface PackageOptions {
+  /**
+   * The user has said they checked the unverified attributes exist in SAP
+   * Commerce. Without it, a sheet carrying an attribute the library does not
+   * know is not packaged.
+   *
+   * With no live connection the app cannot tell a genuine new attribute from a
+   * typo, so this is the only check available - and it is worth having at the
+   * moment of download rather than as a banner, because that is the step just
+   * before the file reaches HAC.
+   */
+  confirmedUnverified?: boolean;
+}
+
+export function unverifiedColumns(sheet: GeneratedLoadSheet): string[] {
+  return [
+    ...new Set(
+      sheet.resolved.blocks
+        .flatMap((block) => block.columns)
+        .filter((column) => column.status === 'unverified')
+        .map((column) => column.column.name),
+    ),
+  ];
+}
+
+export async function packageLoadSheet(
+  sheet: GeneratedLoadSheet,
+  options: PackageOptions = {},
+): Promise<PackagedLoadSheet> {
   if (!sheet.packageable) throw new NotPackageableError(sheet.findings.filter((f) => f.severity === 'error'));
+
+  const unverified = unverifiedColumns(sheet);
+  if (unverified.length > 0 && options.confirmedUnverified !== true) {
+    throw new NotPackageableError([
+      {
+        severity: 'error',
+        code: 'unverified.unconfirmed',
+        message: `${unverified.join(', ')} ${unverified.length === 1 ? 'is' : 'are'} not in the load sheet library. Confirm you have checked ${unverified.length === 1 ? 'it exists' : 'they exist'} in SAP Commerce before downloading.`,
+      },
+    ]);
+  }
 
   const base = sheet.impex.filename.replace(/\.impex$/, '');
 

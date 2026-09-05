@@ -27,7 +27,16 @@ in `docs/load-sheet-template-library.md`.
   particular the natural-language mode must never emit script text - a
   hallucinated modifier would reach production output with nothing in between.
   A column arrives as an attribute name and options, and its modifiers come from
-  a script WOSG has already run.
+  a script WOSG has already run. The model's schema in
+  `integrations/anthropic.ts` has no field a modifier could travel in, and
+  `services/resolveService.ts` re-checks everything it says against the
+  catalogue - including whether an attribute exists, which is the app's verdict
+  and not the model's. Keep both properties when changing either file.
+
+- **An unverified attribute holds the download.** A sheet carrying an attribute
+  the library does not know is generated and flagged, but not packaged until the
+  user confirms they have checked it exists in SAP Commerce - in the UI and, so
+  it means something, in `packageLoadSheet` too. See `docs/decisions.md`.
 
 - **An attribute the library does not have still generates**, but it is marked
   unverified on screen and as a comment in the `.impex`. A near miss to a known
@@ -45,6 +54,12 @@ in `docs/load-sheet-template-library.md`.
 
 - **Both SQL dialects.** PostgreSQL and SQLite. Use `?` placeholders; the driver
   rewrites them.
+
+- **Careful with React memos that feed the preview.** The preview effect reruns
+  when the request object changes identity, and the paste alignment reads its
+  column labels back out of the last preview - so a memo over dependency objects
+  loops: every preview makes a new request, which makes another preview. The
+  request is built from a JSON key for that reason.
 
 - **Comments explain why, not what.** The code is written to be read by someone
   deciding whether a change is safe.

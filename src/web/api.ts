@@ -48,6 +48,23 @@ export interface PreviewColumn {
   chosen: boolean;
 }
 
+export interface ResolvedField {
+  attribute: string;
+  variant?: string;
+  why: string;
+  /** The app's verdict on whether the library has this attribute, not the model's. */
+  known: boolean;
+  suggestions: string[];
+}
+
+export interface Resolution {
+  request: SheetRequest | null;
+  fields: ResolvedField[];
+  summary: string;
+  clarification: string | null;
+  notes: string[];
+}
+
 export interface Preview {
   impex: { filename: string; content: string };
   csvs: { filename: string; content: string }[];
@@ -55,6 +72,8 @@ export interface Preview {
   summary: string;
   packageable: boolean;
   basedOn: { id: string; name: string } | null;
+  /** Attributes in this sheet that the library does not have. */
+  unverified: string[];
   columns?: PreviewColumn[];
 }
 
@@ -65,6 +84,8 @@ export interface SheetRequest {
   op?: string;
   intent?: string;
   rows?: string[][];
+  /** The user has ticked to say they checked the unverified attributes exist. */
+  confirmedUnverified?: boolean;
 }
 
 async function json<T>(response: Response): Promise<T> {
@@ -94,6 +115,31 @@ export async function fetchPreview(request: SheetRequest, signal?: AbortSignal):
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
       ...(signal ? { signal } : {}),
+    }),
+  );
+}
+
+export async function fetchModes(): Promise<{ describe: boolean }> {
+  return json<{ describe: boolean }>(await fetch('/api/sheets/modes'));
+}
+
+export async function describeSheet(description: string): Promise<Resolution> {
+  return json<Resolution>(
+    await fetch('/api/sheets/describe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description }),
+    }),
+  );
+}
+
+/** "It imported cleanly" - save the sheet into the library so the attribute is known next time. */
+export async function learnSheet(request: SheetRequest): Promise<{ learned: string[] }> {
+  return json<{ learned: string[] }>(
+    await fetch('/api/sheets/learn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
     }),
   );
 }

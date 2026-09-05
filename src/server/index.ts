@@ -9,6 +9,7 @@ import { seedLibrary } from './library/seedLibrary.js';
 import { countTemplates } from './services/libraryService.js';
 import { libraryRoutes } from './routes/library.js';
 import { sheetRoutes } from './routes/sheets.js';
+import type { Resolver } from './integrations/anthropic.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -16,7 +17,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
  * `db` is injectable so tests can drive the real routes against an in-memory
  * database rather than a mock of them.
  */
-export async function createApp(injected?: Db): Promise<express.Express> {
+export async function createApp(injected?: Db, resolver?: Resolver): Promise<express.Express> {
   const db = injected ?? (await getDb());
   await migrate(db);
 
@@ -33,7 +34,7 @@ export async function createApp(injected?: Db): Promise<express.Express> {
 
   app.get('/healthz', (_req, res) => res.json({ ok: true }));
   app.use('/api/library', libraryRoutes(db));
-  app.use('/api/sheets', sheetRoutes(db));
+  app.use('/api/sheets', sheetRoutes(db, resolver));
 
   const web = path.join(here, '..', '..', 'dist-web');
   if (fs.existsSync(web)) {

@@ -154,10 +154,22 @@ function headerRowFor(columns: ResolvedColumn[], layout: CsvLayout): string[] {
   return layout.typeColumn ? [layout.typeColumnLabel, ...labels] : labels;
 }
 
-/** The shape the base template writes each of its columns in, by attribute name. */
+/**
+ * The shape the base template writes each of its columns in, by attribute name.
+ *
+ * First occurrence wins. A localized field appears twice in the sheets that
+ * carry both languages - `name[lang=$lang]` then `name[lang=$lang2]` - and WOSG
+ * always writes the primary language first, so taking the last would quietly
+ * produce a sheet that writes only the US text.
+ */
 function shapesFromBaseTemplate(base: LibraryTemplate | undefined, itemType: string): Map<string, string> {
   const block = base?.blocks.find((b) => b.itemType.toLowerCase() === itemType.toLowerCase());
-  return new Map((block?.columns ?? []).map((column) => [column.name.toLowerCase(), formatColumn(column)]));
+  const shapes = new Map<string, string>();
+  for (const column of block?.columns ?? []) {
+    const key = column.name.toLowerCase();
+    if (!shapes.has(key)) shapes.set(key, formatColumn(column));
+  }
+  return shapes;
 }
 
 function resolveBlock(block: SpecBlock, context: ResolveContext, base: LibraryTemplate | undefined): ResolvedBlock {

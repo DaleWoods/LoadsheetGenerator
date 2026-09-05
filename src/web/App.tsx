@@ -3,13 +3,17 @@ import {
   downloadPackage,
   fetchAttributes,
   fetchItemTypes,
+  fetchModes,
   fetchPreview,
+  learnSheet,
   type AttributeView,
   type ItemType,
   type Preview,
+  type Resolution,
   type SheetRequest,
 } from './api.js';
 import { ChosenFields } from './ChosenFields.js';
+import { DescribeBox } from './DescribeBox.js';
 import { FieldPicker, type ChosenField } from './FieldPicker.js';
 import { SheetPreview } from './SheetPreview.js';
 import { alignPastedRows } from '../shared/paste.js';
@@ -31,6 +35,12 @@ export function App(): JSX.Element {
   const [dataSource, setDataSource] = useState<DataSource>('template');
   const [pasted, setPasted] = useState('');
 
+  const [describeEnabled, setDescribeEnabled] = useState(false);
+  /** The user has said they checked the unverified attributes exist in SAP Commerce. */
+  const [confirmedUnverified, setConfirmedUnverified] = useState(false);
+  const [learned, setLearned] = useState<string[] | null>(null);
+  const [downloaded, setDownloaded] = useState(false);
+
   const [preview, setPreview] = useState<Preview | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,15 +51,40 @@ export function App(): JSX.Element {
     fetchItemTypes()
       .then(setItemTypes)
       .catch((err: Error) => setError(err.message));
+    fetchModes()
+      .then((modes) => setDescribeEnabled(modes.describe))
+      .catch(() => setDescribeEnabled(false));
   }, []);
 
+  // Only fetches. Clearing the ticked fields belongs to the thing that changed
+  // the item type, because a resolution changes both at once.
   useEffect(() => {
-    setChosen([]);
-    setPreview(null);
     fetchAttributes(itemType)
       .then(setAttributes)
       .catch((err: Error) => setError(err.message));
   }, [itemType]);
+
+  /**
+   * A described load sheet lands in the picker rather than going straight to a
+   * download: same fields, same order, same shapes, all of it adjustable, and
+   * the same generator behind it.
+   */
+  function applyResolution(resolution: Resolution): void {
+    const request = resolution.request;
+    if (!request) return;
+    setItemType(request.itemType);
+    setChosen(request.fields.map((field) => ({ name: field.name, ...(field.variant ? { variant: field.variant } : {}) })));
+    setName(request.name);
+    setConfirmedUnverified(false);
+    setLearned(null);
+    setDownloaded(false);
+    if (request.rows && request.rows.length > 0) {
+      // Rows the description carried are shown as text, so they can be checked
+      // and corrected like any other paste.
+      setDataSource('paste');
+      setPasted(request.rows.map((row) => row.join('\t')).join('\n'));
+    }
+  }
 
   /**
    * The columns a paste has to line up with, taken from the last preview - the
@@ -81,15 +116,34 @@ export function App(): JSX.Element {
 
   const sheetName = name.trim() || defaultName(itemType, chosen);
 
+  /**
+   * The request, keyed on its own content.
+   *
+   * The preview effect runs whenever this object changes identity, and the
+   * paste alignment reads its column labels from the last preview - so a memo
+   * over the dependency objects feeds back on itself: every preview produces a
+   * fresh `labels` array, a fresh request, and another preview, for ever.
+   * Rebuilding from a JSON key means the identity changes only when the sheet
+   * really does.
+   */
+  const requestKey = JSON.stringify({
+    name: sheetName,
+    itemType,
+    fields: chosen,
+    rows: aligned?.rows ?? [],
+  });
   const request = useMemo<SheetRequest | null>(() => {
     if (chosen.length === 0) return null;
+    const parsed = JSON.parse(requestKey) as SheetRequest & { rows: string[][] };
     return {
-      name: sheetName,
-      itemType,
-      fields: chosen,
-      ...(aligned && aligned.rows.length > 0 ? { rows: aligned.rows } : {}),
+      name: parsed.name,
+      itemType: parsed.itemType,
+      fields: parsed.fields,
+      ...(parsed.rows.length > 0 ? { rows: parsed.rows } : {}),
     };
-  }, [sheetName, itemType, chosen, aligned]);
+  }, [requestKey, chosen.length]);
+
+  const unverified = preview?.unverified ?? [];
 
   const inFlight = useRef<AbortController | null>(null);
   useEffect(() => {
@@ -99,6 +153,8 @@ export function App(): JSX.Element {
     }
     setPending(true);
     setRefusal(null);
+    setConfirmedUnverified(false);
+    setDownloaded(false);
     const controller = new AbortController();
     inFlight.current?.abort();
     inFlight.current = controller;
@@ -126,12 +182,25 @@ export function App(): JSX.Element {
     setDownloading(true);
     setRefusal(null);
     try {
-      const refused = await downloadPackage(request);
+      const refused = await downloadPackage({ ...request, confirmedUnverified });
       if (refused) setRefusal(refused.error);
+      else setDownloaded(true);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setDownloading(false);
+    }
+  }
+
+  /** The library grows from sheets that actually worked, and only the user can say so. */
+  async function onLearn(): Promise<void> {
+    if (!request) return;
+    try {
+      const result = await learnSheet(request);
+      setLearned(result.learned);
+      fetchAttributes(itemType).then(setAttributes).catch(() => undefined);
+    } catch (err) {
+      setError((err as Error).message);
     }
   }
 
@@ -147,10 +216,20 @@ export function App(): JSX.Element {
 
       <div className="columns">
         <section className="panel">
+          <h2>Describe it</h2>
+          <DescribeBox enabled={describeEnabled} onResolved={applyResolution} />
+
           <h2>1. What are you loading?</h2>
           <label className="stacked">
             Item type
-            <select value={itemType} onChange={(event) => setItemType(event.target.value)}>
+            <select
+              value={itemType}
+              onChange={(event) => {
+                setChosen([]);
+                setPreview(null);
+                setItemType(event.target.value);
+              }}
+            >
               {itemTypes.map((type) => (
                 <option key={type.itemType} value={type.itemType}>
                   {type.itemType} — {type.attributes} fields, {type.templates} sheets
@@ -225,13 +304,45 @@ export function App(): JSX.Element {
           ) : null}
 
           <h2>5. Check it</h2>
+          {unverified.length > 0 ? (
+            <label className="confirm">
+              <input
+                type="checkbox"
+                checked={confirmedUnverified}
+                onChange={(event) => setConfirmedUnverified(event.target.checked)}
+              />
+              <span>
+                I have checked that <strong>{unverified.join(', ')}</strong>{' '}
+                {unverified.length === 1 ? 'exists' : 'exist'} in SAP Commerce. The app cannot check this without a live
+                connection, and a name that is wrong will fail at import.
+              </span>
+            </label>
+          ) : null}
           {refusal ? <p className="error">{refusal}</p> : null}
+          {downloaded && unverified.length > 0 && learned === null ? (
+            <p className="learn">
+              <button type="button" onClick={() => void onLearn()}>
+                It imported cleanly — add to the library
+              </button>
+              <span className="muted">
+                Saves this sheet so {unverified.join(', ')} {unverified.length === 1 ? 'is' : 'are'} known next time.
+              </span>
+            </p>
+          ) : null}
+          {learned !== null ? (
+            <p className="muted">
+              {learned.length > 0
+                ? `Added to the library: ${learned.join(', ')}. ${learned.length === 1 ? 'It is' : 'They are'} now offered in the field list.`
+                : 'Saved to the library.'}
+            </p>
+          ) : null}
           <SheetPreview
             preview={preview}
             pending={pending}
             error={error}
             onDownload={() => void onDownload()}
             downloading={downloading}
+            blocked={unverified.length > 0 && !confirmedUnverified}
           />
         </section>
       </div>

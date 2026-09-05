@@ -29,9 +29,11 @@ interface Props {
   error: string | null;
   onDownload: () => void;
   downloading: boolean;
+  /** Held back until the unverified attributes have been confirmed. */
+  blocked: boolean;
 }
 
-export function SheetPreview({ preview, pending, error, onDownload, downloading }: Props): JSX.Element {
+export function SheetPreview({ preview, pending, error, onDownload, downloading, blocked }: Props): JSX.Element {
   if (error) return <p className="error">{error}</p>;
   if (!preview) return <p className="muted">{pending ? 'Generating…' : 'Tick a field to generate a load sheet.'}</p>;
 
@@ -42,7 +44,7 @@ export function SheetPreview({ preview, pending, error, onDownload, downloading 
   return (
     <div className={pending ? 'preview stale' : 'preview'}>
       <div className="preview-actions">
-        <button type="button" onClick={onDownload} disabled={!preview.packageable || downloading}>
+        <button type="button" onClick={onDownload} disabled={!preview.packageable || downloading || blocked}>
           {downloading ? 'Packaging…' : csv ? 'Download zip' : 'Download .impex'}
         </button>
         <p className="summary">{preview.summary}</p>
