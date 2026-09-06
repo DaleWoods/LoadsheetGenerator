@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildCatalogue } from './catalogue.js';
 import { composeSpec } from './compose.js';
 import { generateLoadSheet } from './generate.js';
-import { buildExportQuery, catalogVersionValues, selectionProblems } from './exportQuery.js';
+import { aliasFor, buildExportQuery, catalogVersionValues, selectionProblems } from './exportQuery.js';
 import { packageLoadSheet } from './packageSheet.js';
 import { normaliseSeed } from '../library/seedTemplates.js';
 import { readSeedFile } from '../library/seedLibrary.js';
@@ -20,6 +20,43 @@ function exportSheet(name: string, fields: string[], selection: ExportSelection)
     at,
   );
 }
+
+describe("the query written the way WOSG write one", () => {
+  it('aliases an item type by its initials, as their query library does', () => {
+    // Catalog AS c, CatalogVersion AS cv, BaseStore AS bs, AurumPriceRow AS pr:
+    // the rule is consistent across docs/wosg-flexisearch-queries.md.
+    expect(aliasFor('Product')).toBe('p');
+    expect(aliasFor('CatalogVersion')).toBe('cv');
+    expect(aliasFor('ProductFacetType')).toBe('pft');
+    expect(aliasFor('VariantProduct')).toBe('vp');
+    expect(aliasFor('AurumPointOfService')).toBe('apos');
+  });
+
+  it('restricts the catalog version by joining, not by a subselect', () => {
+    const built = buildExportQuery(
+      { kind: 'skuWildcard', pattern: '17%' },
+      { itemType: 'Product', catalogVersion: { catalogId: 'masterProductCatalog', version: 'Staged' } },
+    );
+
+    // Their form, from two independent queries in the library:
+    //   FROM {product as p join catalogversion as cv on {p.catalogversion}={cv.pk}
+    //   JOIN catalog as c on {cv.catalog}={c.pk}}
+    //   WHERE {c.id}='masterProductCatalog' and {cv.version}='Staged'
+    expect(built.query).toContain('JOIN CatalogVersion AS cv ON {p:catalogVersion} = {cv:pk}');
+    expect(built.query).toContain('JOIN Catalog AS c ON {cv:catalog} = {c:pk}');
+    expect(built.query).toContain("{c:id} = 'masterProductCatalog'");
+    expect(built.query).toContain("{cv:version} = 'Staged'");
+
+    // The subselect this replaced, and the macro that must never appear.
+    expect(built.query).not.toContain('IN ({{');
+    expect(built.query).not.toContain('$catalogVersion');
+  });
+
+  it('leaves the joins out when there is no catalog version to restrict to', () => {
+    const built = buildExportQuery({ kind: 'skuWildcard', pattern: '17%' }, { itemType: 'ProductFacetType' });
+    expect(built.query).toBe("SELECT {pft:pk} FROM {ProductFacetType AS pft} WHERE {pft:code} LIKE '17%'");
+  });
+});
 
 describe('the catalog version an export restricts to', () => {
   it('is read out of the script own macros, as values', () => {
@@ -51,7 +88,7 @@ describe('the three export patterns', () => {
       kind: 'skuList',
       codes: ['17331268', '17331097'],
     });
-    expect(out.impex.content).toContain("{i:code} IN ('17331268', '17331097')");
+    expect(out.impex.content).toContain("{p:code} IN ('17331268', '17331097')");
     // The column order is WOSG's own for an export: catalogVersion, then the key.
     expect(out.impex.content).toContain('INSERT_UPDATE Product;$catalogVersion;code[unique=true];akamaiRoundel');
   });
@@ -61,7 +98,7 @@ describe('the three export patterns', () => {
       kind: 'skuWildcard',
       pattern: '173%',
     });
-    expect(out.impex.content).toContain("{i:code} LIKE '173%'");
+    expect(out.impex.content).toContain("{p:code} LIKE '173%'");
   });
 
   it('pulls everything that has a value, for an attribute wildcard', () => {
@@ -70,13 +107,13 @@ describe('the three export patterns', () => {
       attribute: 'akamaiRoundel',
       pattern: '%',
     });
-    expect(out.impex.content).toContain('{i:akamaiRoundel} IS NOT NULL');
+    expect(out.impex.content).toContain('{p:akamaiRoundel} IS NOT NULL');
 
     const matching = buildExportQuery(
       { kind: 'attributeWildcard', attribute: 'akamaiRoundel', pattern: 'sale%' },
       { itemType: 'Product' },
     );
-    expect(matching.query).toContain("{i:akamaiRoundel} LIKE 'sale%'");
+    expect(matching.query).toContain("{p:akamaiRoundel} LIKE 'sale%'");
   });
 
   it('restricts to one catalog version, with values rather than the macro', () => {

@@ -75,19 +75,53 @@ export interface BuiltQuery {
   description: string;
 }
 
-function catalogVersionClause(alias: string, context: QueryContext): string | null {
+/**
+ * The alias for an item type, the way WOSG aliases one: its initials.
+ *
+ * `Catalog AS c`, `CatalogVersion AS cv`, `BaseStore AS bs`,
+ * `CategoryProductRelation AS cpr`, `AurumPointOfService AS pos` - the rule is
+ * consistent across their query library, and matters because somebody who
+ * opens a generated export in the console should find it written the way they
+ * write one. `i` for "item" was out of the ImpEx documentation, not from here.
+ */
+export function aliasFor(itemType: string): string {
+  const initials = itemType
+    .replace(/[^A-Za-z]/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+    .map((word) => word[0]!.toLowerCase())
+    .join('');
+  return initials.length > 0 ? initials : 'i';
+}
+
+/**
+ * Restricting to one catalog version, joined rather than sub-selected.
+ *
+ * WOSG write this the same way in every query that needs it: join through
+ * CatalogVersion to Catalog and compare `{c:id}` and `{cv:version}` as values.
+ * The app used to express the same restriction as a nested `IN ({{ ... }})`
+ * subselect, which is valid FlexibleSearch and is not what a WOSG script looks
+ * like. Two of their queries settle the form; see
+ * `docs/wosg-flexisearch-queries.md`.
+ *
+ * Values, never the `$catalogVersion` macro: ImpEx substitutes macros
+ * everywhere in the file, so writing it here would paste a column definition
+ * into the middle of the SQL.
+ */
+function catalogVersionJoin(alias: string, context: QueryContext): { joins: string; conditions: string[] } | null {
   const values = context.catalogVersion;
   if (!values) return null;
-  return (
-    `{${alias}:catalogVersion} IN ({{ SELECT {cv:pk} FROM {CatalogVersion AS cv}, {Catalog AS c} ` +
-    `WHERE {cv:catalog} = {c:pk} AND {c:id} = ${quoteValue(values.catalogId)} ` +
-    `AND {cv:version} = ${quoteValue(values.version)} }})`
-  );
+  return {
+    joins:
+      ` JOIN CatalogVersion AS cv ON {${alias}:catalogVersion} = {cv:pk}` +
+      ` JOIN Catalog AS c ON {cv:catalog} = {c:pk}`,
+    conditions: [`{c:id} = ${quoteValue(values.catalogId)}`, `{cv:version} = ${quoteValue(values.version)}`],
+  };
 }
 
 export function buildExportQuery(selection: ExportSelection, context: QueryContext): BuiltQuery {
-  const alias = 'i';
-  const from = `{${context.itemType} AS ${alias}}`;
+  const alias = aliasFor(context.itemType);
   const conditions: string[] = [];
   let description: string;
 
@@ -121,11 +155,13 @@ export function buildExportQuery(selection: ExportSelection, context: QueryConte
     }
   }
 
-  const catalogVersion = catalogVersionClause(alias, context);
-  if (catalogVersion) conditions.push(catalogVersion);
+  // The catalog restriction goes first in the WHERE, as it does in theirs.
+  const catalogVersion = catalogVersionJoin(alias, context);
+  const from = `{${context.itemType} AS ${alias}${catalogVersion?.joins ?? ''}}`;
+  const where = [...(catalogVersion?.conditions ?? []), ...conditions];
 
   return {
-    query: `SELECT {${alias}:pk} FROM ${from} WHERE ${conditions.join(' AND ')}`,
+    query: `SELECT {${alias}:pk} FROM ${from} WHERE ${where.join(' AND ')}`,
     description,
   };
 }

@@ -122,10 +122,10 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
     lines.push('#');
     lines.push(
       ...wrapComment(
-        'CHECK ONCE: the column list below is taken from WOSG export scripts, but the ' +
-          'setTargetFile and exportItemsFlexibleSearch lines are written from the ImpEx ' +
-          'documentation rather than copied from one - the supplied extraction did not ' +
-          'include them. Compare this against a known-good export before relying on it.',
+        'CHECK ONCE: the columns are taken from WOSG export scripts and the query follows ' +
+          'the conventions in docs/wosg-flexisearch-queries.md. The setTargetFile and ' +
+          'exportItemsFlexibleSearch lines around it are written from the ImpEx documentation ' +
+          'rather than copied from a script. Compare against a known-good export before relying on it.',
       ),
     );
   }

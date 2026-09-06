@@ -53,6 +53,14 @@ script, and the download waits on an explicit confirmation.
 Templates are reference knowledge, not output. Every sheet is composed on the
 fly; the app never hands back a stored file.
 
+An export carries a FlexibleSearch query, which finds the rows the column list
+then writes out. It is generated to WOSG's own conventions — an item type
+aliased by its initials, a catalog version restricted by joining through
+CatalogVersion to Catalog — taken from `docs/wosg-flexisearch-queries.md` and
+pinned by tests. The `setTargetFile` and `exportItemsFlexibleSearch` lines
+around it are still written from the ImpEx documentation, and every generated
+export says so until a real export script is added to the library.
+
 ## The repository
 
 One store, two shelves. **Already run against production** is the scripts WOSG

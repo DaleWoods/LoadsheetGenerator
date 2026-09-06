@@ -207,17 +207,33 @@ request it would itself have flagged as unverified and made the user tick a
 box to clear. `describeBox.test.ts` now checks every attribute named in an
 example against the catalogue.
 
-## What WOSG's FlexibleSearch queries do and do not settle
+## The export query is written the way WOSG write one
 
-`docs/wosg-flexisearch-queries.md` is the team's own backoffice query library.
-It is worth having — real syntax, real joins, real attribute names, the enum
-PKs written down — but it does **not** close the export gap. Those queries are
-written to be read in the Admin console: they `SELECT` display columns, where
-an export's `exportItemsFlexibleSearch` needs the PK of the items to export,
-and none of them carries the `setTargetFile` or `exportItems` lines that wrap
-one. So `export.mechanicsUnverified` stays until a real export *script* is to
-hand.
+An export ImpEx carries a FlexibleSearch query: it finds the rows, and the
+column list decides what of each row is written out. So the query is not a
+detail around the sheet, it is half of what the sheet does — and
+`docs/wosg-flexisearch-queries.md`, the team's own query library, is the
+reference for how they write one. Two conventions in it are consistent enough
+to follow, and the generator now does:
 
-Two things it does corroborate, both already in the generator: the catalog
-restriction naming `masterProductCatalog` and `Staged` as values, and the
-`LIKE '17%'` code-prefix pattern behind the SKU wildcard export.
+- **An item type is aliased by its initials.** `Catalog AS c`,
+  `CatalogVersion AS cv`, `BaseStore AS bs`, `AurumPriceRow AS pr`,
+  `CategoryProductRelation AS cpr`. The app used to write `AS i`, for "item",
+  which came out of the ImpEx documentation and appears nowhere in their work.
+- **A catalog version is restricted by joining**, through CatalogVersion to
+  Catalog, comparing `{c:id}` and `{cv:version}` as values. Two independent
+  queries in the library write it that way. The app expressed the same
+  restriction as a nested `IN ({{ SELECT ... }})` subselect: valid
+  FlexibleSearch, and not what a WOSG script looks like.
+
+The colon form (`{p:code}`) is theirs too, 1120 uses against 173 of the dot
+form; the app already used it. `exportQuery.test.ts` pins all of this, with
+their queries quoted in the test.
+
+What the library does **not** settle is the two lines that wrap the query.
+Those queries are written to be read in the Admin console — they `SELECT`
+display columns, where `exportItemsFlexibleSearch` needs the PK of the items
+to export — and none of them carries a `setTargetFile` or `exportItems` line.
+So `export.mechanicsUnverified` stays, narrowed to say exactly that: the
+columns and the query are WOSG's, the two lines around them are from the
+documentation. One real export script would close it.

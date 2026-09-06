@@ -258,7 +258,7 @@ describe('what the app does with the model answer', () => {
     });
 
     const sheet = await generateFromRequest(db, resolution.request!);
-    expect(sheet.impex.content).toContain("{i:code} LIKE '173%'");
+    expect(sheet.impex.content).toContain("{p:code} LIKE '173%'");
     expect(sheet.csvs).toEqual([]);
   });
 

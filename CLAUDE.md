@@ -26,6 +26,13 @@ tree" survives a reorganisation; "the six folders" does not.
 
 ## Things that will bite you
 
+- **An export's query is half of what the export does.** It finds the rows; the
+  column list decides what of each row is written. Write it the way WOSG write
+  one - `docs/wosg-flexisearch-queries.md` is their own library, and
+  `exportQuery.test.ts` pins the conventions taken from it. Never put a `$macro`
+  inside a query: ImpEx substitutes macros everywhere in the file, so
+  `$catalogVersion` would paste a column definition into the middle of the SQL.
+
 - **`columnsOffset` is copied, never computed.** A CSV with the leading
   "Type (Leave Blank)" column reads at offset 0; one without it at -1. Getting
   this wrong is what caused a real production import to fail with "unknown

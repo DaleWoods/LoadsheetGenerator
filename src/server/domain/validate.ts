@@ -137,7 +137,7 @@ export function validate(input: ValidationInput): Finding[] {
       severity: 'info',
       code: 'export.mechanicsUnverified',
       message:
-        'The columns come from WOSG export scripts, but the setTargetFile and export query lines are written from the ImpEx documentation - the supplied extraction did not include them. Worth checking against a known-good export once.',
+        'The columns come from WOSG export scripts and the query follows the conventions in their own query library. The two lines that wrap it - setTargetFile and exportItemsFlexibleSearch - are still written from the ImpEx documentation, because the supplied extraction did not include them. Worth checking against a known-good export script once.',
     });
   }
 
