@@ -1,0 +1,3 @@
+"#% impex.setTargetFile( ""ProductFacetType.csv"" );"
+INSERT_UPDATE ProductFacetType;code[unique=true];name [lang=en];name [lang=en_US];
+"#% impex.exportItemsFlexibleSearch(""select {p.PK} from {ProductFacetType as p}"");"

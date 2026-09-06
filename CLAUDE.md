@@ -77,12 +77,19 @@ checking, and hides none of the result.
 
 ## Things that will bite you
 
+- **`docs/wosg-loadsheets/` is 107 scripts WOSG have run.** It is the answer to
+  almost any "how should this be written" question, and it is worth grepping
+  before reasoning from the ImpEx documentation - an export written from the
+  documentation failed in HAC with no error, and every one of the five reasons
+  was visible in these files. `exportShape.test.ts` holds the generator to
+  three of them line for line.
+
 - **An export's query is half of what the export does.** It finds the rows; the
-  column list decides what of each row is written. Write it the way WOSG write
-  one - `docs/wosg-flexisearch-queries.md` is their own library, and
-  `exportQuery.test.ts` pins the conventions taken from it. Never put a `$macro`
-  inside a query: ImpEx substitutes macros everywhere in the file, so
-  `$catalogVersion` would paste a column definition into the middle of the SQL.
+  column list decides what of each row is written. Never put a `$macro` inside
+  a query: ImpEx substitutes macros everywhere in the file, so `$catalogVersion`
+  would paste a column definition into the middle of the SQL. And an export
+  header without `$catalogVersion` cannot identify a Product, which is a failure
+  that reports nothing.
 
 - **`columnsOffset` is copied, never computed.** A CSV with the leading
   "Type (Leave Blank)" column reads at offset 0; one without it at -1. Getting

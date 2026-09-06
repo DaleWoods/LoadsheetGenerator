@@ -32,7 +32,7 @@ describe("the query written the way WOSG write one", () => {
     expect(aliasFor('AurumPointOfService')).toBe('apos');
   });
 
-  it('restricts the catalog version by joining, not by a subselect', () => {
+  it('restricts the catalog version in the ON clauses, as their scripts do', () => {
     const built = buildExportQuery(
       { kind: 'skuWildcard', pattern: '17%' },
       { itemType: 'Product', catalogVersion: { catalogId: 'masterProductCatalog', version: 'Staged' } },
@@ -42,10 +42,8 @@ describe("the query written the way WOSG write one", () => {
     //   FROM {product as p join catalogversion as cv on {p.catalogversion}={cv.pk}
     //   JOIN catalog as c on {cv.catalog}={c.pk}}
     //   WHERE {c.id}='masterProductCatalog' and {cv.version}='Staged'
-    expect(built.query).toContain('JOIN CatalogVersion AS cv ON {p:catalogVersion} = {cv:pk}');
-    expect(built.query).toContain('JOIN Catalog AS c ON {cv:catalog} = {c:pk}');
-    expect(built.query).toContain("{c:id} = 'masterProductCatalog'");
-    expect(built.query).toContain("{cv:version} = 'Staged'");
+    expect(built.query).toContain("JOIN CatalogVersion AS cv ON {p:catalogversion} = {cv.pk} and {cv.version} = 'Staged'");
+    expect(built.query).toContain("JOIN Catalog as c ON {c.pk} = {cv.Catalog} and {c.id} = 'masterProductCatalog'");
 
     // The subselect this replaced, and the macro that must never appear.
     expect(built.query).not.toContain('IN ({{');
@@ -75,7 +73,7 @@ describe("the query written the way WOSG write one", () => {
 
   it('leaves the joins out when there is no catalog version to restrict to', () => {
     const built = buildExportQuery({ kind: 'skuWildcard', pattern: '17%' }, { itemType: 'ProductFacetType' });
-    expect(built.query).toBe("SELECT {pft:pk} FROM {ProductFacetType AS pft} WHERE {pft:code} LIKE '17%'");
+    expect(built.query).toBe("select {pft.pk} FROM {ProductFacetType as pft} where {pft.code} LIKE '17%'");
   });
 });
 
@@ -109,7 +107,7 @@ describe('the three export patterns', () => {
       kind: 'skuList',
       codes: ['17331268', '17331097'],
     });
-    expect(out.impex.content).toContain("{p:code} IN ('17331268', '17331097')");
+    expect(out.impex.content).toContain("{p.code} in ('17331268', '17331097')");
     // The column order is WOSG's own for an export: catalogVersion, then the key.
     expect(out.impex.content).toContain('INSERT_UPDATE Product;$catalogVersion;code[unique=true];akamaiRoundel');
   });
@@ -119,7 +117,7 @@ describe('the three export patterns', () => {
       kind: 'skuWildcard',
       pattern: '173%',
     });
-    expect(out.impex.content).toContain("{p:code} LIKE '173%'");
+    expect(out.impex.content).toContain("{p.code} LIKE '173%'");
   });
 
   it('pulls everything that has a value, for an attribute wildcard', () => {
@@ -128,29 +126,31 @@ describe('the three export patterns', () => {
       attribute: 'akamaiRoundel',
       pattern: '%',
     });
-    expect(out.impex.content).toContain('{p:akamaiRoundel} IS NOT NULL');
+    expect(out.impex.content).toContain('{p.akamaiRoundel} IS NOT NULL');
 
     const matching = buildExportQuery(
       { kind: 'attributeWildcard', attribute: 'akamaiRoundel', pattern: 'sale%' },
       { itemType: 'Product' },
     );
-    expect(matching.query).toContain("{p:akamaiRoundel} LIKE 'sale%'");
+    expect(matching.query).toContain("{p.akamaiRoundel} LIKE 'sale%'");
   });
 
   it('restricts to one catalog version, with values rather than the macro', () => {
     const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
     // The macro expands to a column definition; ImpEx substitutes macros
     // everywhere, so one inside the query would paste that into the SQL.
-    const query = /exportItemsFlexibleSearch\( ""(.+?)"" \)/.exec(out.impex.content)![1]!;
+    const query = /exportItemsFlexibleSearch\(""(.+?)""\)/.exec(out.impex.content)![1]!;
     expect(query).not.toMatch(/\$[A-Za-z_]/);
-    expect(query).toContain("{c:id} = 'masterProductCatalog'");
-    expect(query).toContain("{cv:version} = 'Staged'");
+    expect(query).toContain("{c.id} = 'masterProductCatalog'");
+    expect(query).toContain("{cv.version} = 'Staged'");
   });
 
-  it('says where the CSV will appear, since the app cannot go and get it', () => {
+  it('writes to products.csv, whatever the sheet is called, as theirs do', () => {
+    // 28 of their 34 export scripts write products.csv - it is picked up from
+    // HAC straight after the run, so it is a scratch name, not an archive one.
     const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
-    expect(out.impex.content).toContain('"#% impex.setTargetFile( ""RoundelExport.csv"" );"');
-    expect(out.summary).toContain('writing RoundelExport.csv inside SAP Commerce for you to collect');
+    expect(out.impex.content).toContain('"#% impex.setTargetFile( ""products.csv"" );"');
+    expect(out.summary).toContain('writing products.csv inside SAP Commerce for you to collect');
   });
 
   it('comes out as one file, not a zip', async () => {
@@ -161,10 +161,15 @@ describe('the three export patterns', () => {
     expect(bundle.contentType).toBe('text/plain; charset=utf-8');
   });
 
-  it('says the query mechanics are not from a WOSG script', () => {
+  it('no longer warns that the mechanics are unverified, because they are not', () => {
+    // The caveat stood while setTargetFile and exportItemsFlexibleSearch were
+    // written from the ImpEx documentation. The scripts themselves are in the
+    // library now and exportShape.test.ts reproduces three of them line for
+    // line, so the warning would be telling the user to check something that
+    // has been checked - which is how a real warning gets ignored.
     const out = exportSheet('Roundel Export', ['akamaiRoundel'], { kind: 'skuList', codes: ['17331268'] });
-    expect(out.findings.find((f) => f.code === 'export.mechanicsUnverified')).toMatchObject({ severity: 'info' });
-    expect(out.impex.content).toContain('CHECK ONCE');
+    expect(out.findings.find((f) => f.code === 'export.mechanicsUnverified')).toBeUndefined();
+    expect(out.impex.content).not.toContain('CHECK ONCE');
     expect(out.packageable).toBe(true);
   });
 });

@@ -1,0 +1,6 @@
+$productCatalog=masterProductCatalog
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;code[unique=true];clickAndCollectRestricted[default=true];$catalogVersion;
+;37510252;false;

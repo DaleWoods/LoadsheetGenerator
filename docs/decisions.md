@@ -224,36 +224,53 @@ request it would itself have flagged as unverified and made the user tick a
 box to clear. `describeBox.test.ts` now checks every attribute named in an
 example against the catalogue.
 
-## The export query is written the way WOSG write one
+## The export is copied from exports that have run
 
-An export ImpEx carries a FlexibleSearch query: it finds the rows, and the
-column list decides what of each row is written out. So the query is not a
-detail around the sheet, it is half of what the sheet does — and
-`docs/wosg-flexisearch-queries.md`, the team's own query library, is the
-reference for how they write one. Two conventions in it are consistent enough
-to follow, and the generator now does:
+A generated export failed in HAC with no error. The reason was not one thing,
+and none of it was guesswork that could have been reasoned out: the original
+extraction captured each export's header line but not the file around it, so
+the mechanics were written from the ImpEx documentation. Dale then sent the
+loadsheets folder itself — 107 scripts, 34 of them exports — and
+`docs/wosg-loadsheets/` now holds them.
 
-- **An item type is aliased by its initials.** `Catalog AS c`,
-  `CatalogVersion AS cv`, `BaseStore AS bs`, `AurumPriceRow AS pr`,
-  `CategoryProductRelation AS cpr`. The app used to write `AS i`, for "item",
-  which came out of the ImpEx documentation and appears nowhere in their work.
-- **A catalog version is restricted by joining**, through CatalogVersion to
-  Catalog, comparing `{c:id}` and `{cv:version}` as values. Two independent
-  queries in the library write it that way. The app expressed the same
-  restriction as a nested `IN ({{ SELECT ... }})` subselect: valid
-  FlexibleSearch, and not what a WOSG script looks like.
+Set against a working script, five things were wrong:
 
-The colon form (`{p:code}`) is theirs too, 1120 uses against 173 of the dot
-form; the app already used it. `exportQuery.test.ts` pins all of this, with
-their queries quoted in the test.
+- **No `$catalogVersion` in the header line.** A Product is identified by its
+  code *and* its catalog version, so a header declaring only
+  `code[unique=true]` cannot identify the rows the query found. An export now
+  always carries it, in front of the key, as theirs do.
+- **No macros, and therefore no catalog restriction in the query.** The macros
+  are only emitted for columns that reference them, so the missing
+  `$catalogVersion` column silently took the restriction with it and the export
+  ran across every catalog version at once.
+- **An `enableCodeExecution` line.** None of their 34 exports has one.
+- **No blank lines.** After a header line ImpEx reads what follows as that
+  header's value lines, and the export call is a quoted field like any other —
+  run up against the header it can be taken for data and never execute, which
+  is an export that finishes having done nothing. 31 of their 34 separate them.
+- **LF line endings.** All 107 of their scripts are CRLF. The CSV alongside
+  always was; the script was the odd one out.
 
-What the library does **not** settle is the two lines that wrap the query.
-Those queries are written to be read in the Admin console — they `SELECT`
-display columns, where `exportItemsFlexibleSearch` needs the PK of the items
-to export — and none of them carries a `setTargetFile` or `exportItems` line.
-So `export.mechanicsUnverified` stays, narrowed to say exactly that: the
-columns and the query are WOSG's, the two lines around them are from the
-documentation. One real export script would close it.
+The query itself was rewritten to the form 17 of their exports share, down to
+the mixed casing (`as p` beside `AS cv`) and the mixed `{p:catalogversion}` /
+`{cv.pk}` reference styles. Copied rather than tidied: it is the form that has
+run against production, which beats a neater one that has not. The catalog
+restriction lives in the ON clauses so the WHERE carries only what was asked
+for, and all three selections the app can produce — a code list, a code
+wildcard, a wildcard on another attribute — have a counterpart among them.
+
+The target file is `products.csv` in 28 of the 34, whatever the sheet is
+called. It is collected from HAC straight after the run, so it is a scratch
+name; naming it after the sheet was the app's own idea.
+
+`exportShape.test.ts` reproduces three of their exports line for line from the
+app's own generator, and the three reference scripts sit beside it. That is
+what a test for this is worth: not that the output matches what I believed the
+documentation said, but that it matches a file that has run.
+
+With the mechanics copied rather than inferred, `export.mechanicsUnverified`
+is gone. It said "compare this against a known-good export before relying on
+it", and that comparison is now a test.
 
 ## A generated script carries no PK, and no silent filter
 

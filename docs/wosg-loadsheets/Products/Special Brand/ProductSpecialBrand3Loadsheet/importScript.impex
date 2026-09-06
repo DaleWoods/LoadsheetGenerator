@@ -1,0 +1,11 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en_US
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+
+INSERT_UPDATE Product;code[unique=true];specialBrandField3[lang=$lang];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ProductSpecialBrand3Loadsheet.csv"", ""UTF-8"", ',', 1, 0);"

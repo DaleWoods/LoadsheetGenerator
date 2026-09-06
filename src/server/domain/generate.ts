@@ -87,11 +87,13 @@ function exportLines(resolved: ResolvedLoadSheet, block: ResolvedBlock): { befor
     itemType: block.itemType,
     ...(catalogVersion ? { catalogVersion } : {}),
   });
-  const target = targetFileFor(selection, `${slugForFiles(resolved.name)}.csv`);
+  const target = targetFileFor(selection, block.itemType);
 
+  // Spaced exactly as their scripts space it, down to the trailing "; that
+  // closes the export call - these two lines are the ones HAC executes.
   return {
     before: [`"#% impex.setTargetFile( ""${target}"" );"`],
-    after: [`"#% impex.exportItemsFlexibleSearch( ""${built.query}"" );"`],
+    after: [`"#% impex.exportItemsFlexibleSearch(""${built.query} ""); "`],
   };
 }
 
@@ -118,20 +120,19 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
     );
   }
 
-  if (resolved.direction === 'export') {
-    lines.push('#');
-    lines.push(
-      ...wrapComment(
-        'CHECK ONCE: the columns are taken from WOSG export scripts and the query follows ' +
-          'the conventions in docs/wosg-flexisearch-queries.md. The setTargetFile and ' +
-          'exportItemsFlexibleSearch lines around it are written from the ImpEx documentation ' +
-          'rather than copied from a script. Compare against a known-good export before relying on it.',
-      ),
-    );
-  }
-
   lines.push('');
-  lines.push(PREAMBLE_CODE_EXECUTION);
+  // An export opens with setTargetFile, above the macros, and carries no
+  // enableCodeExecution line - HAC's export runs the `#%` lines already. Both
+  // are copied from their scripts rather than reasoned about.
+  if (resolved.direction === 'export') {
+    const first = resolved.blocks[0];
+    if (first) {
+      lines.push(...exportLines(resolved, first).before);
+      lines.push('');
+    }
+  } else {
+    lines.push(PREAMBLE_CODE_EXECUTION);
+  }
   for (const [name, definition] of resolved.macros) lines.push(`$${name}=${definition}`);
 
   for (const block of resolved.blocks) {
@@ -143,15 +144,28 @@ function writeImpex(resolved: ResolvedLoadSheet, generatedAt: string, templateNa
         : '';
       lines.push(...wrapComment(`UNVERIFIED COLUMN: ${column.expression} - not in the load sheet library.${suggestion}`));
     }
-    const exported = exportLines(resolved, block);
+    // `before` (setTargetFile) is written once at the top for an export, above
+    // the macros, so it is not repeated per block here.
+    const exported = { ...exportLines(resolved, block), before: [] as string[] };
+    /*
+     * The blank lines matter. After a header line ImpEx reads what follows as
+     * that header's value lines, and the export call is a quoted field like
+     * any other - so run up against the header it can be taken for data and
+     * never execute, which is an export that finishes having done nothing.
+     * The known-good script separates every part; so does this.
+     */
     lines.push(...exported.before);
+    if (exported.before.length > 0) lines.push('');
     lines.push(headerLine(block));
+    if (exported.after.length > 0) lines.push('');
     lines.push(...exported.after);
     if (block.csv) lines.push(includeCall(block.csv));
   }
 
   lines.push('');
-  return lines.join('\n');
+  // CRLF, as every one of WOSG's 107 scripts is written. The CSV alongside it
+  // has always been CRLF; the script was the odd one out.
+  return lines.join('\r\n');
 }
 
 function writeBlockCsv(block: ResolvedBlock): GeneratedFile | undefined {
@@ -199,7 +213,7 @@ function summarise(resolved: ResolvedLoadSheet, findings: Finding[]): string {
       const fields = block.columns.filter((c) => c.column.kind === 'attribute').length;
       parts.push(
         `Pulls ${fields} column${fields === 1 ? '' : 's'} of ${block.itemType} data for ${built.description}, ` +
-          `writing ${targetFileFor(resolved.export, `${slugForFiles(resolved.name)}.csv`)} inside SAP Commerce for you to collect`,
+          `writing ${targetFileFor(resolved.export, block.itemType)} inside SAP Commerce for you to collect`,
       );
     }
     const errors = findings.filter((f) => f.severity === 'error').length;

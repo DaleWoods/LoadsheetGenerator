@@ -128,7 +128,25 @@ export function composeSpec(request: ComposeRequest, context: ComposeContext): L
   const trailing = trailingMacroColumns(match, style).filter(
     (macro) => ![...key, ...middle].some((column) => sameColumn(macro, column)),
   );
-  const columns = [...key, ...middle, ...trailing];
+  /*
+   * An export puts `$catalogVersion` in front of the key, and always has one.
+   *
+   * From the known-good export in `docs/wosg-export-script.md`:
+   *   INSERT_UPDATE Product;$catalogVersion;code[unique=true];virtualStockOnSite(uid)
+   *
+   * It is not decoration. A Product is identified by its code *and* its
+   * catalog version, so a header line declaring only `code[unique=true]`
+   * cannot identify the rows the query found - and an export whose header
+   * cannot identify its rows is the one that came back from HAC having failed
+   * with nothing to say. It also declares the macros, which is what gives the
+   * query its catalog restriction; without it an export ran across every
+   * catalog version at once.
+   */
+  const exportCatalogVersion: SpecColumn[] =
+    direction === 'export' && ![...key, ...middle, ...trailing].some((c) => /catalogversion/i.test(c.name))
+      ? [{ kind: 'macro', name: '$catalogVersion', modifiers: [] }]
+      : [];
+  const columns = [...exportCatalogVersion, ...key, ...middle, ...trailing];
 
   const conventions = csvConventions(match);
   const block: SpecBlock = {

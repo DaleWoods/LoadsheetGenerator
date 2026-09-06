@@ -1,0 +1,11 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+
+
+INSERT_UPDATE Product;code[unique=true];maxOrderQuantity;$catalogVersion;
+"#% impex.includeExternalDataMedia( ""maxOrderQuantity.csv"", ""UTF-8"", ',', 1, 0);"

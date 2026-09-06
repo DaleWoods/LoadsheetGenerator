@@ -1,0 +1,8 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;code[unique=true];syncToSite(uid)[mode=append];purchaseOnSite(uid)[mode=append];priceVisibleOnSite(uid)[mode=append];virtualStockOnSite(uid)[mode=append];giftWrapOnSite(uid)[mode=append];localStockCheckerVisibleOnSite(uid)[mode=append];homeDeliveryAvailableOnSite(uid)[mode=append];clickAndCollectAvailableOnSite(uid)[mode=append];enablePaypalCreditOnSite(uid)[mode=append];enablePaypalExpressOnSite(uid)[mode=append];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ProductSiteSettingsAppendLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

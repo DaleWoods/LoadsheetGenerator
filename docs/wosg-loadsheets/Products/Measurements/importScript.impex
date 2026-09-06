@@ -1,0 +1,13 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+$lang2=en_US
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+
+
+INSERT_UPDATE Product;code[unique=true];measurements[lang=$lang];measurements[lang=$lang2];$catalogVersion;
+"#% impex.includeExternalDataMedia( ""Measurements.csv"", ""UTF-8"", ',', 1, 0);"

@@ -1,0 +1,10 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=WatchesOfSwitzerland_US_ProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Online'])[unique=true,default=$productCatalog:Online]
+
+
+
+INSERT_UPDATE Product;code[unique=true];solrTiebreakerSortScore;$catalogVersion
+"#% impex.includeExternalDataMedia( ""SolrTiebreakerSortScore.csv"", ""UTF-8"", ',', 1, 0);"

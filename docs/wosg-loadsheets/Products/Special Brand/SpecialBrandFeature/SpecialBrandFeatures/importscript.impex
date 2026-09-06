@@ -1,0 +1,8 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$lang=en
+$lang2=en_US
+
+INSERT_UPDATE SpecialBrandFeature;code[unique=true];title[lang=$lang];title[lang=$lang2]
+"#% impex.includeExternalDataMedia( ""SpecialBrandFeatures.csv"" , ""UTF-8"", ';',  1 , -1 );"

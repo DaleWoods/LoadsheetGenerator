@@ -1,0 +1,16 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+$lang2=en_US
+# When you don't want to use lang2 set it to a languague in the system we don't currently use, in this case hu is Hungarian
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+$approved=approvalstatus(code)[default='unapproved']
+$unit=unit(code)[default=EA]
+
+
+INSERT_UPDATE Product;code[unique=true];manufacturerName;name[lang=$lang];name[lang=$lang2];description[lang=$lang];description[lang=$lang2];productType(code);$supercategories;specialBrandField1[lang=$lang];specialBrandField2[lang=$lang];specialBrandField3[lang=$lang];specialBrandDescription[lang=$lang];specialBrandField1[lang=$lang2];specialBrandField2[lang=$lang2];specialBrandField3[lang=$lang2];specialBrandDescription[lang=$lang2];manufacturerAID;syncToSite(uid);purchaseOnSite(uid);priceVisibleOnSite(uid);virtualStockOnSite(uid);giftWrapOnSite(uid);homeDeliveryAvailableOnSite(uid);clickAndCollectAvailableOnSite(uid);enablePaypalCreditOnSite(uid);enablePaypalExpressOnSite(uid);clickAndCollectRestricted[default=False];clickAndCollectAllowedStores;akamaiImageCount;usePngImageFormat[default=True];has360Image[default=True];googleShoppingFeedImageURL;excludeFromFreeTextSearch[default=False];pageTitle[lang=$lang];pageTitle[lang=$lang2];manufacturedYear;metaDescription[lang=$lang];metaKeywords[lang=$lang];youMayAlsoLikeEnabled[default=True];youMayAlsoLikeCampaign;$unit;$catalogVersion;$approved
+"#% impex.includeExternalDataMedia( ""masterCPOProductLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

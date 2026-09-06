@@ -1,0 +1,8 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$catalogVersion=catalogVersion(catalog(id[default='Goldsmiths_UK_ProductCatalog']),version[default='Staged'])[unique=true,default='Goldsmiths_UK_ProductCatalog:Staged']
+$lang=en
+
+UPDATE Category;code[unique=true];metaDescription[lang=$lang];$catalogVersion
+"#% impex.includeExternalDataMedia( ""CategoryMetaDescription.csv"", ""UTF-8"", ',', 1, 0);"

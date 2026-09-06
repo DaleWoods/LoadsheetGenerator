@@ -204,7 +204,7 @@ describe('generating for an attribute the library does not have', () => {
     // The name the user wrote is what gets generated; the known one it is
     // close to appears only as a suggestion, never substituted into the script.
     expect(out.impex.content).toContain('code[unique=true];metaKeyword;$catalogVersion');
-    expect(out.impex.content.replace(/\n# /g, ' ')).toContain('Closest known attribute: metaKeywords.');
+    expect(out.impex.content.replace(/\r?\n# /g, ' ')).toContain('Closest known attribute: metaKeywords.');
     expect(out.findings.find((f) => f.code === 'column.unverified')!.message).toContain('Did you mean `metaKeywords`');
   });
 

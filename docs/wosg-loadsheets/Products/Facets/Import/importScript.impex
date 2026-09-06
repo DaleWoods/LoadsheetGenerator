@@ -1,0 +1,8 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;code[unique=true];productFacetMap(key(code),value(code))[map-delimiter=|];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ProductFacetLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

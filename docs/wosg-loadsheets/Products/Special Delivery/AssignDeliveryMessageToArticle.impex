@@ -1,0 +1,7 @@
+$productCatalog=masterProductCatalog
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;code[unique=true];$catalogVersion;deliveryPromises(key(uid),value(code))[map-delimiter=|];
+;17331158;;Mayors_US->SpecialOrder1|WatchesOfSwitzerland_US->SpecialOrder1|Goldsmiths_UK->SpecialOrder2|MappinAndWebb_UK->SpecialOrder2|WatchesOfSwitzerland_UK->SpecialOrder2;
+;17331159;;Mayors_US->SpecialOrder1|WatchesOfSwitzerland_US->SpecialOrder1|Goldsmiths_UK->SpecialOrder2|MappinAndWebb_UK->SpecialOrder2|WatchesOfSwitzerland_UK->SpecialOrder2;

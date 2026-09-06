@@ -1,0 +1,9 @@
+"#% impex.setTargetFile( ""products.csv"" );"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$lang=en_US
+
+INSERT_UPDATE Product;$catalogVersion;code[unique=true];specialBrandField1[lang=$lang];specialBrandField2[lang=$lang];specialBrandField3[lang=$lang];specialBrandDescription[lang=$lang]
+
+"#% impex.exportItemsFlexibleSearch(""select {p.pk} FROM {Product as p JOIN CatalogVersion AS cv ON {p:catalogversion} = {cv.pk} and {cv.version} = 'Staged' JOIN Catalog as c ON {c.pk} = {cv.Catalog} and {c.id} = 'masterProductCatalog' } where {p.code} LIKE '1733%' ""); "

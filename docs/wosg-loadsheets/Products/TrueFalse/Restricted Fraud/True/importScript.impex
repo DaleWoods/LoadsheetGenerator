@@ -1,0 +1,11 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+
+INSERT_UPDATE Product;code[unique=true];requireOrderApproval[default=true];$catalogVersion
+"#% impex.includeExternalDataMedia( ""RestrictedFraud.csv"", ""UTF-8"", ',', 1, 0);"

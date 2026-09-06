@@ -1,0 +1,33 @@
+"#% impex.setTargetFile( ""products.csv"" );"
+
+$productCatalog=masterProductCatalog
+$lang=en
+$lang2=en_US
+# When you don't want to use land2 set it to a languague in the system we don't currently use, in this case hu is Hungarian
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+$approved=approvalstatus(code)[default='unapproved']
+$unit=unit(code)[default=EA]
+
+INSERT_UPDATE Product;code[unique=true];$supercategories;manufacturerName;name[lang=$lang];name[lang=$lang2];description[lang=$lang];description[lang=$lang2];manufacturerAID;EAN;syncToSite(uid);purchaseOnSite(uid);priceVisibleOnSite(uid);virtualStockOnSite(uid);giftWrapOnSite(uid);homeDeliveryAvailableOnSite(uid);clickAndCollectAvailableOnSite(uid);enablePaypalCreditOnSite(uid);enablePaypalExpressOnSite(uid);usePngImageFormat;pageTitle[lang=$lang];varianttype(code);measurements[lang=$lang];metaDescription[lang=$lang];metaKeywords[lang=$lang];specialBrandField1[lang=$lang];specialBrandField2[lang=$lang];specialBrandField3[lang=$lang];specialBrandDescription[lang=$lang];productType(code)
+
+"#% impex.exportItemsFlexibleSearch(""select {pk} FROM {Product} where {CatalogVersion} = '8796125889113' and {code} IN ('M37711290')"");"
+
+# CatalogVersion
+# MPC = 8796125889113
+
+# Mayors Online = 8796126052953
+# Mayors Staged = 8796126085721
+
+# WOS US Online = 8796158755417
+# WOS US Staged = 8796158722649
+
+# Goldsmiths Online = 8796224291417
+# Goldsmiths Staged = 8796224258649
+
+# Mappin & Webb Online = 8796224488025
+# Mappin & Webb Staged = 8796224455257
+
+# WOS UK Online = 8796224619097
+# WOS UK Staged = 8796224586329

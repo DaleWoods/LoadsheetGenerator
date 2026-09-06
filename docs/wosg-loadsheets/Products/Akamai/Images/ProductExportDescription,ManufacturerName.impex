@@ -1,0 +1,23 @@
+"#% impex.setTargetFile( ""products.csv"" );"
+
+INSERT_UPDATE Product;code[unique=true];akamaiImageCount
+
+"#% impex.exportItemsFlexibleSearch(""select {pk} FROM {Product} where {CatalogVersion} = '8796125889113'"");"
+
+# CatalogVersion
+# MPC = 8796125889113
+
+# Mayors Online = 8796126052953
+# Mayors Staged = 8796126085721
+
+# WOS US Online = 8796158755417
+# WOS US Staged = 8796158722649
+
+# Goldsmiths Online = 8796224291417
+# Goldsmiths Staged = 8796224258649
+
+# Mappin & Webb Online = 8796224488025
+# Mappin & Webb Staged = 8796224455257
+
+# WOS UK Online = 8796224619097
+# WOS UK Staged = 8796224586329

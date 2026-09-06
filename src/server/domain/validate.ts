@@ -153,14 +153,6 @@ export function validate(input: ValidationInput): Finding[] {
         });
       }
     }
-    // Said plainly, because it is the one part of a generated export that did
-    // not come from a script WOSG has run.
-    add({
-      severity: 'info',
-      code: 'export.mechanicsUnverified',
-      message:
-        'The columns come from WOSG export scripts and the query follows the conventions in their own query library. The two lines that wrap it - setTargetFile and exportItemsFlexibleSearch - are still written from the ImpEx documentation, because the supplied extraction did not include them. Worth checking against a known-good export script once.',
-    });
   }
 
   input.resolved.blocks.forEach((block, blockIndex) => {

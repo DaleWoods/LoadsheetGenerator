@@ -1,0 +1,13 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+$lang2=en_US
+# When you don't want to use land2 set it to a languague in the system we don't currently use, in this case hu is Hungarian
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+
+INSERT_UPDATE Product;code[unique=true];name[lang=$lang];name[lang=$lang2];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ProductNameLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

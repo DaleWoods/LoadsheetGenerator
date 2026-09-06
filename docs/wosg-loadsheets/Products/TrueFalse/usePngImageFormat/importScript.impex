@@ -1,0 +1,13 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en_US
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+$unit=unit(code)[default=EA]
+
+
+INSERT_UPDATE Product;code[unique=true];$supercategories;usePngImageFormat[default=False];$catalogVersion
+"#% impex.includeExternalDataMedia( ""usePngImageFormat.csv"", ""UTF-8"", ',', 1, 0);"

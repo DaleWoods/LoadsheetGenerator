@@ -1,0 +1,8 @@
+"#% impex.setTargetFile( ""products.csv"" );"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;$catalogVersion;code[unique=true];akamaiRoundel
+
+"#% impex.exportItemsFlexibleSearch(""select {p.pk} FROM {Product as p JOIN CatalogVersion AS cv ON {p:catalogversion} = {cv.pk} and {cv.version} = 'Staged' JOIN Catalog as c ON {c.pk} = {cv.Catalog} and {c.id} = 'masterProductCatalog' } where {p.akamaiRoundel} LIKE 'sale%' ""); "

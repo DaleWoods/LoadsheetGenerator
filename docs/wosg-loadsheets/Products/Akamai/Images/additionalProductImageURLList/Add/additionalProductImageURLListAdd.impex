@@ -1,0 +1,16 @@
+$productCatalog=MappinAndWebb_UK_ProductCatalog
+$lang=en
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+# List the full url's separated by a comma
+INSERT_UPDATE Product;code[unique=true];additionalProductImageURLList[mode=append];$catalogVersion;
+
+# List the full url's separated by a comma
+;37251012;https://content.thewosgroup.com/packaging/innerGoldsmiths.jpg, https://content.thewosgroup.com/packaging/outerWOS.jpg;;
+
+#Goldsmiths_UK_ProductCatalog
+#MappinAndWebb_UK_ProductCatalog
+#WatchesOfSwitzerland_UK_ProductCatalog
+#Mayors_US_ProductCatalog
+#WatchesOfSwitzerland_US_ProductCatalog

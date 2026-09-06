@@ -1,0 +1,18 @@
+
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+$lang2=en_US
+# When you don't want to use land2 set it to a languague in the system we don't currently use, in this case hu is Hungarian
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+$approved=approvalstatus(code)[default='unapproved']
+$unit=unit(code)[default=EA]
+
+
+INSERT_UPDATE VariantProduct;baseProduct(code, $catalogVersion);code[unique=true];manufacturerName;name[lang=$lang];name[lang=$lang2];description[lang=$lang];description[lang=$lang2];$supercategories;productFacetMap(key(code),value(code))[map-delimiter=|];varianttype(code);syncToSite(uid);purchaseOnSite(uid);priceVisibleOnSite(uid);virtualStockOnSite(uid);giftWrapOnSite(uid);localStockCheckerVisibleOnSite(uid);homeDeliveryAvailableOnSite(uid);clickAndCollectAvailableOnSite(uid);enablePaypalCreditOnSite(uid);enablePaypalExpressOnSite(uid);productType(code);excludeStoreStockOnSite(uid);publishedDate[dateformat='dd/MM/yyyy HH:mm'];$catalogVersion;$approved;
+"#% impex.includeExternalDataMedia( ""VariantProductLoadsheetWithFacets.csv"", ""UTF-8"", ',', 1, 0);"
+
+

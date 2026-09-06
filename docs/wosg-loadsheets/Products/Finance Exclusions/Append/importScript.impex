@@ -1,0 +1,8 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;code[unique=true];excludedFromFinanceProviders(code)[mode=append];excludedFromFinancePlans(code)[mode=append];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ProductFinanceExclusionsAppendLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

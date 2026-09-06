@@ -1,0 +1,14 @@
+"#% impex.setTargetFile(""SeeMoreStylesExport.csv"");"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;$catalogVersion;code[unique=true];seeMoreStylesRef(code,$catalogVersion)[collection-delimiter='|']
+
+"#% impex.exportItemsFlexibleSearch(""select {p.pk} FROM {Product as p JOIN CatalogVersion as cv ON {p:catalogversion} = {cv:pk} JOIN Catalog as c ON {cv:catalog} = {c:pk}} WHERE {c:id} = 'masterProductCatalog' AND {cv:version} = 'Staged' AND {p:code} LIKE '1792%' "",
+Collections.EMPTY_MAP,
+Collections.singletonList(Item.class),
+true,
+true,
+-1,
+-1);"

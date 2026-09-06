@@ -1,0 +1,7 @@
+# ImpEx for Importing Facets
+"#% impex.enableCodeExecution(true);"
+
+$lang=en
+
+INSERT_UPDATE ProductFacetType;code[unique=true];name[lang=$lang]
+"#% impex.includeExternalDataMedia( ""ProductFacetTypes.csv"", ""UTF-8"", ',', 1, 0);"

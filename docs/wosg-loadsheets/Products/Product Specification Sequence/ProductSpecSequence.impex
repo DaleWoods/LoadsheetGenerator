@@ -1,0 +1,5 @@
+
+INSERT_UPDATE ProductFacetType;code[unique=true];SequenceNumber;
+;FacetType1;991;
+;FacetType2;992;
+;FacetType3;993;

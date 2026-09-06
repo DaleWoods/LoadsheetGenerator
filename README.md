@@ -33,6 +33,7 @@ src/web/         signing in, the field picker (Mode B), the describe box (Mode A
 docs/
   loadsheet-generator-spec.md        what was asked for
   load-sheet-template-library.md     the house conventions, written up
+  wosg-loadsheets/                   the 107 scripts WOSG have run - the reference
   wosg-flexisearch-queries.md        WOSG's own backoffice queries, for reference
   decisions.md                       every deliberate departure, and why
 ```
@@ -54,12 +55,10 @@ Templates are reference knowledge, not output. Every sheet is composed on the
 fly; the app never hands back a stored file.
 
 An export carries a FlexibleSearch query, which finds the rows the column list
-then writes out. It is generated to WOSG's own conventions — an item type
-aliased by its initials, a catalog version restricted by joining through
-CatalogVersion to Catalog — taken from `docs/wosg-flexisearch-queries.md` and
-pinned by tests. The `setTargetFile` and `exportItemsFlexibleSearch` lines
-around it are still written from the ImpEx documentation, and every generated
-export says so until a real export script is added to the library.
+then writes out. Both, and the two lines that wrap them, are copied from the
+34 export scripts in `docs/wosg-loadsheets/` rather than written from the ImpEx
+documentation - `exportShape.test.ts` reproduces three of them line for line
+from the generator.
 
 A generated script never carries a PK or a filter nobody asked for: PKs
 identify different rows in different environments, and an export that silently

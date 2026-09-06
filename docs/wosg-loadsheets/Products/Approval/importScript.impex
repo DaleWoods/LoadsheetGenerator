@@ -1,0 +1,12 @@
+# ImpEx for Importing Products
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$approved=approvalstatus(code)[default='unapproved']
+
+
+INSERT_UPDATE Product;code[unique=true];$approved;$catalogVersion
+"#% impex.includeExternalDataMedia( ""ApprovalProductLoadsheet.csv"", ""UTF-8"", ',', 1, 0);"

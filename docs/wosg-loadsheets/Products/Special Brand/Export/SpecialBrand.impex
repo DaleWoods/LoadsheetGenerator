@@ -1,0 +1,5 @@
+"#% impex.setTargetFile( ""SpecialBrandFeatures.csv"" );"
+
+INSERT_UPDATE SpecialBrandFeature;code[unique=true];title[lang=en];title[lang=en_US]
+
+"#% impex.exportItemsFlexibleSearch(""select {pk} FROM {SpecialBrandFeature}"");"

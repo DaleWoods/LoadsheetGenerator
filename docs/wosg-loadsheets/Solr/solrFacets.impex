@@ -1,0 +1,10 @@
+# Not yet documented
+
+$indexLanguages=en
+$solrIndexedType=aurumBaseProductType
+
+INSERT_UPDATE SolrIndexedProperty;solrIndexedType(identifier)[unique=true];name[unique=true];displayName[lang=$indexLanguages];facet[default=true];type(code);facetSort(code);priority;facetType(code);currency[default=false];localized[default=false];multiValue[default=true];useForSpellchecking[default=false];useForAutocomplete[default=false];fieldValueProvider;valueProviderParameter;ftsPhraseQuery[default=false];ftsPhraseQueryBoost;ftsQuery[default=false];ftsQueryBoost;ftsFuzzyQuery[default=false];ftsFuzzyQueryBoost;ftsWildcardQuery[default=false];ftsWildcardQueryType(code)[default=POSTFIX];ftsWildcardQueryBoost;ftsWildcardQueryMinTermLength
+;$solrIndexedType; DialColour              ;Dial Colour         ;;string;Alpha;500;MultiSelectOr;;   ;    ;    ;    ; aurumFacetValueProvider;       ;    ;   ;    ;   ;    ;  ;    ;   ;
+
+INSERT_UPDATE SolrSearchQueryProperty;indexedProperty(name, solrIndexedType(identifier))[unique=true];facet[default=true];facetType(code);priority;facetDisplayNameProvider;facetSortProvider;facetTopValuesProvider;includeInResponse[default=true];searchQueryTemplate(name, indexedType(identifier))[unique=true][default=DEFAULT:$solrIndexedType]
+;DialColour:$solrIndexedType									 ;					 ;MultiSelectOr	 ;500	  ;						   							;				 			  ;	;;

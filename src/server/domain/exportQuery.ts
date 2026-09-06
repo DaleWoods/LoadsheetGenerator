@@ -96,44 +96,49 @@ export function aliasFor(itemType: string): string {
 }
 
 /**
- * Restricting to one catalog version, joined rather than sub-selected.
+ * The query, written the way WOSG's own export scripts write one.
  *
- * WOSG write this the same way in every query that needs it: join through
- * CatalogVersion to Catalog and compare `{c:id}` and `{cv:version}` as values.
- * The app used to express the same restriction as a nested `IN ({{ ... }})`
- * subselect, which is valid FlexibleSearch and is not what a WOSG script looks
- * like. Two of their queries settle the form; see
- * `docs/wosg-flexisearch-queries.md`.
+ * Seventeen of their thirty-four export scripts use this exact form, and the
+ * three the app can produce - a code list, a code wildcard, a wildcard on
+ * another attribute - each have a counterpart among them:
+ *
+ *   select {p.pk} FROM {Product as p JOIN CatalogVersion AS cv ON {p:catalogversion} = {cv.pk}
+ *   and {cv.version} = 'Staged' JOIN Catalog as c ON {c.pk} = {cv.Catalog}
+ *   and {c.id} = 'masterProductCatalog' } where {p.code} LIKE '1733%'
+ *
+ * Copied rather than tidied. The mixed casing (`as p` beside `AS cv`) and the
+ * mixed `{p:catalogversion}` / `{cv.pk}` reference styles are theirs, and this
+ * is the form that has run against production - which beats a neater one that
+ * has not. The restriction sits in the ON clauses, so the WHERE carries only
+ * what was asked for.
  *
  * Values, never the `$catalogVersion` macro: ImpEx substitutes macros
  * everywhere in the file, so writing it here would paste a column definition
  * into the middle of the SQL.
  */
-function catalogVersionJoin(alias: string, context: QueryContext): { joins: string; conditions: string[] } | null {
+function catalogVersionJoins(alias: string, context: QueryContext): string {
   const values = context.catalogVersion;
-  if (!values) return null;
-  return {
-    joins:
-      ` JOIN CatalogVersion AS cv ON {${alias}:catalogVersion} = {cv:pk}` +
-      ` JOIN Catalog AS c ON {cv:catalog} = {c:pk}`,
-    conditions: [`{c:id} = ${quoteValue(values.catalogId)}`, `{cv:version} = ${quoteValue(values.version)}`],
-  };
+  if (!values) return '';
+  return (
+    ` JOIN CatalogVersion AS cv ON {${alias}:catalogversion} = {cv.pk} and {cv.version} = ${quoteValue(values.version)}` +
+    ` JOIN Catalog as c ON {c.pk} = {cv.Catalog} and {c.id} = ${quoteValue(values.catalogId)} `
+  );
 }
 
 export function buildExportQuery(selection: ExportSelection, context: QueryContext): BuiltQuery {
   const alias = aliasFor(context.itemType);
-  const conditions: string[] = [];
+  let where: string;
   let description: string;
 
   switch (selection.kind) {
     case 'skuList': {
       const codes = (selection.codes ?? []).map((code) => code.trim()).filter((code) => code.length > 0);
-      conditions.push(`{${alias}:code} IN (${codes.map(quoteValue).join(', ')})`);
+      where = `{${alias}.code} in (${codes.map(quoteValue).join(', ')})`;
       description = `the ${codes.length} code${codes.length === 1 ? '' : 's'} listed`;
       break;
     }
     case 'skuWildcard': {
-      conditions.push(`{${alias}:code} LIKE ${quoteValue(selection.pattern ?? '')}`);
+      where = `{${alias}.code} LIKE ${quoteValue(selection.pattern ?? '')}`;
       description = `every code matching ${selection.pattern}`;
       break;
     }
@@ -142,34 +147,32 @@ export function buildExportQuery(selection: ExportSelection, context: QueryConte
       const pattern = selection.pattern ?? '';
       // An empty pattern means "has any value at all", which is how the Roundel
       // wildcard export is used: pull every product that has one.
-      conditions.push(
-        pattern === '' || pattern === '%'
-          ? `{${alias}:${attribute}} IS NOT NULL`
-          : `{${alias}:${attribute}} LIKE ${quoteValue(pattern)}`,
-      );
-      description =
-        pattern === '' || pattern === '%'
-          ? `every record that has a ${attribute}`
-          : `every record whose ${attribute} matches ${pattern}`;
+      const any = pattern === '' || pattern === '%';
+      where = any ? `{${alias}.${attribute}} IS NOT NULL` : `{${alias}.${attribute}} LIKE ${quoteValue(pattern)}`;
+      description = any
+        ? `every record that has a ${attribute}`
+        : `every record whose ${attribute} matches ${pattern}`;
       break;
     }
   }
 
-  // The catalog restriction goes first in the WHERE, as it does in theirs.
-  const catalogVersion = catalogVersionJoin(alias, context);
-  const from = `{${context.itemType} AS ${alias}${catalogVersion?.joins ?? ''}}`;
-  const where = [...(catalogVersion?.conditions ?? []), ...conditions];
-
-  return {
-    query: `SELECT {${alias}:pk} FROM ${from} WHERE ${where.join(' AND ')}`,
-    description,
-  };
+  const from = `{${context.itemType} as ${alias}${catalogVersionJoins(alias, context)}}`;
+  return { query: `select {${alias}.pk} FROM ${from} where ${where}`, description };
 }
 
-/** What the export writes inside SAP Commerce; the user collects it from HAC afterwards. */
-export function targetFileFor(selection: ExportSelection, fallback: string): string {
+/**
+ * What the export writes inside SAP Commerce; the user collects it from HAC
+ * afterwards.
+ *
+ * `products.csv` in twenty-eight of WOSG's thirty-four export scripts, whatever
+ * the sheet is called - the file is picked up from HAC straight after the run,
+ * so it is a scratch name rather than an archive one. Naming it after the sheet
+ * was the app's own idea and made a generated export look unlike theirs.
+ */
+export function targetFileFor(selection: ExportSelection, itemType: string): string {
   const named = selection.targetFile?.trim();
-  return named && named.length > 0 ? named : fallback;
+  if (named && named.length > 0) return named;
+  return /^product$/i.test(itemType) ? 'products.csv' : `${itemType}.csv`;
 }
 
 export interface SelectionProblem {

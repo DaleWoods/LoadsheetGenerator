@@ -1,0 +1,8 @@
+"#% impex.setTargetFile( ""products.csv"" );"
+
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+
+INSERT_UPDATE Product;$catalogVersion;code[unique=true];productFacetMap(key(code),value(code))[map-delimiter=|]
+
+"#% impex.exportItemsFlexibleSearch(""select {p.pk} FROM {Product as p JOIN CatalogVersion AS cv ON {p:catalogversion} = {cv.pk} and {cv.version} = 'Staged' JOIN Catalog as c ON {c.pk} = {cv.Catalog} and {c.id} = 'masterProductCatalog' } where {p.code} in ('17304453', '17304451', '17304436', '17304432', '17304431', '17304428', '17304156', '17304065', '17304047', '17304024', '17304014', '17303995', '17303802', '17303782', '17303741', '17303295', '17303258', '17302995', '17302850', '17302750', '17305533', '17305530', '17305524', '17305462', '17305455', '17305445', '17305422', '17305351', '17305350', '17305349', '17305324', '17305321', '17305148', '17305147', '17305101', '17305082', '17305081', '17304480', '17304464', '17304462') ""); "

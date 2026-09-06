@@ -1,0 +1,5 @@
+"#% impex.setTargetFile( ""Orders.csv"" );"
+
+INSERT_UPDATE Order;code[alias=Order No.];date[alias=Order Date];totalPrice[alias=Total Price];deliverymessage[alias=Delivery Lead Time];consignments(status(code))[alias=Consignment Status];consignments(shippingDate)[alias=ShippingDate];
+
+"#% impex.exportItemsFlexibleSearch(""select {o.pk} from {Order as o} where {o.creationtime} > '2024-01-01 00:00:00.0' AND  {o.creationtime} < '2024-01-10 00:00:00.0' ""); "

@@ -1,0 +1,42 @@
+
+$lang=en
+$storeUid=aurumBaseStore
+$countryCode=GB
+$contentCatalog=aurumContentCatalog
+
+$baseStore=basestore(uid)[default=$storeUid]
+$posType=type(code)[default=STORE]
+$country=country(isocode)[default=$countryCode]
+$StandardDateFormat=hh:mm
+$contentCV=catalogVersion(CatalogVersion.catalog(Catalog.id[default=$contentCatalog]),CatalogVersion.version[default=Staged])[default=$contentCatalog:Staged]
+
+# Define Store Address
+
+INSERT_UPDATE Address;&addrID;streetnumber;streetname;district;town;postalcode;$country;phone1;fax;email;appartment;company;lastname;firstname;owner(PointOfService.name)[unique=true];
+
+# Define Opening Shedule
+
+INSERT_UPDATE OpeningSchedule;code[unique=true];
+
+INSERT_UPDATE WeekdayOpeningDay;dayOfWeek(code,itemtype(code))[unique=true];openingTime[dateformat=hh:mm];closingTime[dateFormat=$StandardDateFormat];openingSchedule(code)[unique=true];
+
+# Store Details
+
+INSERT_UPDATE AurumPointOfService;name[unique=true];displayName;$posType;address(&addrID);latitude;longitude;geocodeTimestamp[dateformat=dd-MM-yyyy];isClickAndCollectEnabled;isReserveAndCollectEnabled;storeManager;openingSchedule(code);
+
+INSERT_UPDATE StoreDescription;code[unique=true];facilities[lang=$lang];managerQuote[lang=$lang];features(key(isocode[lang=$lang]),value)[map-delimiter=|];
+
+UPDATE AurumPointOfService;name[unique=true];storeDescription(code);baseStore(uid)[mode=append];
+
+UPDATE AurumPointOfService;name[unique=true];storeIpAddress;$baseStore;
+
+INSERT_UPDATE Media;mediaFormat(qualifier);code[unique=true];URL;mime[default='image/jpeg'];$contentCV;
+
+INSERT_UPDATE AurumPointOfService;name[unique=true];aurumStoreImage(code, $contentCV);
+
+# Assign Brands to Store
+
+INSERT_UPDATE StoreBrand;code[unique=true];name;image(code, $contentCV);linkText[unique=true];linkURL;
+
+UPDATE AurumPointOfService;name[unique=true];brands(code);
+

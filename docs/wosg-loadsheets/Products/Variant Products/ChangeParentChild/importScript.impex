@@ -1,0 +1,14 @@
+
+"#% impex.enableCodeExecution(true);"
+
+$productCatalog=masterProductCatalog
+$lang=en
+
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$supercategories=supercategories(code, $catalogVersion)[mode=append]
+
+
+UPDATE VariantProduct;baseProduct(code, $catalogVersion);code[unique=true];$catalogVersion
+"#% impex.includeExternalDataMedia( ""ChangeParentChild.csv"", ""UTF-8"", ',', 1, 0);"
+
+

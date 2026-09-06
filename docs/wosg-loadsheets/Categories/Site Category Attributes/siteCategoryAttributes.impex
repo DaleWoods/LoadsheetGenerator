@@ -1,0 +1,9 @@
+$productCatalog=masterProductCatalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default='Staged'])[unique=true,default=$productCatalog:Staged]
+$lang=en
+
+INSERT_UPDATE SiteCategoryAttribute;code[unique=true];site(uid);pageTitle[lang=$lang]
+;OmegaDale;MappinAndWebb_UK;"This is a page title test";
+
+INSERT_UPDATE Category;code[unique=true];siteCategoryAttributes(code)[mode=append];$catalogVersion
+;Omega;OmegaDale;
