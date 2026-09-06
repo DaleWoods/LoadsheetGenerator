@@ -81,3 +81,35 @@ export function alignPastedRows(text: string, labels: string[]): AlignedRows {
   const ragged = rows.filter((row) => row.length !== labels.length).length;
   return { rows, notes, ragged };
 }
+
+/**
+ * Putting a pasted list of codes into the key column of rows that already have
+ * their other values.
+ *
+ * This is the shape of most of the work: the sheet knows what it is setting -
+ * `Goldsmiths_UK` in Display On Site, `TRUE` in a flag - and the only thing
+ * left is which records it applies to. Typing the same value down ten rows by
+ * hand to get there is the chore the app exists to remove.
+ *
+ * The last row with values is the template, so a list longer than the rows
+ * already there still gets them. A list shorter than the rows drops the
+ * extras, because a row nobody named a record for is a row that cannot import.
+ */
+export function fillKeys(rows: string[][], codes: string[]): string[][] {
+  const wanted = codes.map((code) => code.trim()).filter((code) => code.length > 0);
+  if (wanted.length === 0) return rows;
+  const template = rows[rows.length - 1] ?? [];
+  return wanted.map((code, index) => {
+    const row = [...(rows[index] ?? template)];
+    row[0] = code;
+    return row;
+  });
+}
+
+/** A pasted block of one code per line, however they were separated. */
+export function parseCodeList(text: string): string[] {
+  return text
+    .split(/[\r\n,;\t]+/)
+    .map((code) => code.trim())
+    .filter((code) => code.length > 0);
+}

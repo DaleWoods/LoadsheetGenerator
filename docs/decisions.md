@@ -262,3 +262,28 @@ complete, and only the second can be checked by looking at it. If restricting
 to approved becomes something people want, it belongs on the export panel as a
 visible choice with the row count changing in front of them — not in the
 generator as a default nobody sees.
+
+## The sheet knows what it is setting; you only tell it which records
+
+Two frictions were left after the app started part-filling rows, and Dale named
+both: getting the SKUs into a part-filled sheet, and the handover to HAC.
+
+The first is the shape of most of the work. "Add Goldsmiths to display on site
+for 10 SKUs" leaves the app knowing the value for every row and none of the
+records. Filling that in by hand meant typing `Goldsmiths_UK` down ten rows in
+a textarea. So when every row has values and no key, the rows step offers a box
+for a bare list of codes and puts them in beside the values already there. A
+list longer than the rows carries the values on to all of them; a list shorter
+than the rows drops the extras, because a row nobody named a record for cannot
+import.
+
+The second is `NextSteps`, shown when the zip is actually taken. Its facts are
+read back out of the generated script — the file name, the encoding, how many
+heading lines are skipped — rather than written from a remembered example,
+because a checklist describing a different file is worse than none. The HAC
+steps themselves are short and name no buttons: a control that has since moved
+teaches people to distrust the rest of the list, and the process is not
+something the app can see. It says so, and invites correction.
+
+Both were built for an audience that has never opened an ImpEx file, which is
+who Dale says will be using it.

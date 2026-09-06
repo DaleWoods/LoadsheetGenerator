@@ -116,6 +116,15 @@ set. Without `DB_DRIVER=postgres` the app falls back to SQLite on the local
 disk, which Render wipes on every deploy - the library re-seeds itself, but
 anything added since is gone.
 
+## After the download
+
+The zip is where the app's job ends, but not where the work does, so the
+download is followed by what to do with it: fill the CSV in, upload both files
+together under the name the script reads, validate before importing, and come
+back to say it worked. The facts in it are read back out of the generated
+script rather than written from an example. The HAC steps are not something the
+app can verify - they say so.
+
 ## Keeping the documents current
 
 `README.md`, `CLAUDE.md` and `docs/decisions.md` are updated in the same commit

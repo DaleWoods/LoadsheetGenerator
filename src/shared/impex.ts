@@ -188,3 +188,34 @@ export function requiredMacros(columns: ImpexColumn[], available: Record<string,
   for (const column of columns) visit(column.raw ?? formatColumn(column));
   return Object.keys(available).filter((name) => needed.has(name));
 }
+
+export interface IncludeCall {
+  file: string;
+  encoding: string;
+  delimiter: string;
+  linesToSkip: number;
+  columnsOffset: number;
+}
+
+/**
+ * The parameters of a script's `includeExternalDataMedia` call.
+ *
+ * Read back out of the finished script rather than carried alongside it,
+ * because what somebody needs to be told about the file - which encoding, how
+ * many heading lines get skipped - is whatever the script they are holding
+ * actually says. Anything else would be describing a different file.
+ */
+export function readIncludeCall(script: string): IncludeCall | null {
+  const match =
+    /impex\.includeExternalDataMedia\(\s*""(.+?)""\s*,\s*""(.+?)""\s*,\s*'(.+?)'\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/.exec(
+      script,
+    );
+  if (!match) return null;
+  return {
+    file: match[1]!,
+    encoding: match[2]!,
+    delimiter: match[3]!,
+    linesToSkip: Number(match[4]),
+    columnsOffset: Number(match[5]),
+  };
+}

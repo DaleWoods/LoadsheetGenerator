@@ -1170,3 +1170,54 @@ table.columns-table code {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Telling the sheet which records it applies to, when that is all it needs. */
+.fill-keys {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--navy);
+  border-radius: var(--radius-sm);
+  background: var(--navy-tint);
+}
+.fill-keys h3 {
+  margin: 0 0 3px;
+  font-size: 14px;
+}
+.fill-keys .muted {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+textarea.paste.short {
+  min-height: 84px;
+  margin-bottom: 10px;
+}
+
+/* The handover to HAC, once the zip is in their downloads folder. */
+.next-steps {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.next-steps h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+ol.steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+ol.steps strong {
+  color: var(--ink);
+}
+.next-steps > .muted {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+}

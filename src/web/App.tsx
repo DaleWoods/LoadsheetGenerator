@@ -16,8 +16,9 @@ import { ChosenFields } from './ChosenFields.js';
 import { DescribeBox } from './DescribeBox.js';
 import { ExportPanel, parseCodes, type ExportSelection } from './ExportPanel.js';
 import { FieldPicker, type ChosenField } from './FieldPicker.js';
+import { NextSteps } from './NextSteps.js';
 import { SheetPreview } from './SheetPreview.js';
-import { alignPastedRows } from '../shared/paste.js';
+import { alignPastedRows, fillKeys, parseCodeList } from '../shared/paste.js';
 
 /**
  * Both ways of getting data in are supported (§6.2): download the empty CSV
@@ -35,6 +36,7 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
   const [itemType, setItemType] = useState('Product');
   const [attributes, setAttributes] = useState<AttributeView[]>([]);
   const [chosen, setChosen] = useState<ChosenField[]>([]);
+  const [codeList, setCodeList] = useState('');
   const [name, setName] = useState('');
   const [dataSource, setDataSource] = useState<DataSource>('template');
   const [pasted, setPasted] = useState('');
@@ -176,6 +178,18 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
       ...(parsed.export ? { direction: 'export' as const, export: parsed.export } : {}),
     };
   }, [requestKey, chosen.length]);
+
+  /*
+   * A sheet with values written down every row and no keys at all is one
+   * waiting to be told which records it applies to - the state the describe
+   * box leaves "add Goldsmiths to display on site for 10 SKUs" in. The
+   * validator works this out the same way, from the rows rather than a flag.
+   */
+  const keyLabel = preview?.columns?.find((column) => column.role === 'key')?.label ?? 'SKU';
+  const awaitingKeys =
+    direction === 'import' &&
+    (aligned?.rows.length ?? 0) > 0 &&
+    (aligned?.rows ?? []).every((row) => (row[0] ?? '').trim() === '');
 
   const unverified = preview?.unverified ?? [];
 
@@ -387,6 +401,42 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
                     : ''}
                 </p>
               ) : null}
+
+              {/*
+                * The sheet knows what it is setting and only needs to be told
+                * which records. Offered only then, because that is the only
+                * time it means anything - and it is most of the work: the
+                * alternative is typing the same value down every row by hand.
+                */}
+              {awaitingKeys ? (
+                <div className="fill-keys">
+                  <h3>Which {keyLabel}s?</h3>
+                  <p className="muted">
+                    The values are already filled in. Paste your {keyLabel}s below — one per line — and they go in
+                    beside them.
+                  </p>
+                  <textarea
+                    className="paste short"
+                    value={codeList}
+                    onChange={(event) => setCodeList(event.target.value)}
+                    placeholder={'17331268\n17331097\n17331228'}
+                    aria-label={`Paste ${keyLabel}s`}
+                  />
+                  <button
+                    type="button"
+                    disabled={parseCodeList(codeList).length === 0}
+                    onClick={() => {
+                      const filled = fillKeys(aligned?.rows ?? [], parseCodeList(codeList));
+                      setPasted(filled.map((row) => row.join('\t')).join('\n'));
+                      setCodeList('');
+                    }}
+                  >
+                    Put {parseCodeList(codeList).length > 0 ? `${parseCodeList(codeList).length} ` : ''}
+                    {keyLabel}
+                    {parseCodeList(codeList).length === 1 ? '' : 's'} in
+                  </button>
+                </div>
+              ) : null}
             </>
           ) : null}
 
@@ -416,6 +466,14 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
             downloading={downloading}
             blocked={unverified.length > 0 && !confirmedUnverified}
           />
+          {downloaded && preview ? (
+            <NextSteps
+              impex={preview.impex.content}
+              impexFilename={preview.impex.filename}
+              csvFilename={preview.csvs[0]?.filename ?? null}
+              rowCount={aligned?.rows.length ?? 0}
+            />
+          ) : null}
           {preview && saved === null ? (
             <div className="save-box">
               <h2 className="step" style={{ marginTop: 0 }}>
