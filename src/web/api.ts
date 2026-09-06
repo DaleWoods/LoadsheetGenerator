@@ -373,11 +373,31 @@ export async function queryModes(): Promise<{ describe: boolean }> {
 }
 
 export async function describeFlexQuery(description: string): Promise<FlexResult> {
-  return json<FlexResult>(
-    await fetch('/api/queries/describe', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ description }),
-    }),
-  );
+  // Writing a query takes as long as the model takes. Left to the browser, a
+  // slow one dies as a bare "failed to fetch" with nothing to act on, so it is
+  // given an explicit ceiling and a message that says what happened.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120_000);
+  try {
+    return await json<FlexResult>(
+      await fetch('/api/queries/describe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ description }),
+        signal: controller.signal,
+      }),
+    );
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error('That took more than two minutes and was given up on. Try asking for less in one go.');
+    }
+    if (error instanceof TypeError) {
+      throw new Error(
+        'The request did not reach the server, or the connection dropped before it answered. If the app has just woken up, try once more.',
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }

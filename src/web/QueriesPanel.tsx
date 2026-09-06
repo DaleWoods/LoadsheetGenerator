@@ -54,8 +54,9 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
       <div className="page-head">
         <h1>Write a query</h1>
         <p>
-          Say what you need out of SAP Commerce and the app writes the FlexibleSearch for it, using the types, fields
-          and joins from queries the team has already run. Paste it into the console yourself.
+          Say what you need out of SAP Commerce in your own words. Claude writes the FlexibleSearch, reading the
+          team&rsquo;s own query library for the types, fields and joins — so it uses the way you already query rather
+          than something generic. Copy it into the backoffice console yourself.
         </p>
       </div>
 
@@ -66,7 +67,8 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
           </h2>
           {!enabled ? (
             <p className="muted">
-              This needs <code>ANTHROPIC_API_KEY</code> set on the server.
+              Writing a query needs <code>ANTHROPIC_API_KEY</code> set on the server. Everything else on this tab works
+              without it.
             </p>
           ) : (
             <>
@@ -81,7 +83,9 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
                 <button type="button" onClick={() => void run()} disabled={working || description.trim().length < 3}>
                   {working ? 'Working it out…' : 'Write the query'}
                 </button>
-                <span className="muted">Reads only — nothing here changes anything.</span>
+                <span className="muted">
+                  Reads only — nothing here changes anything. It can take up to a minute.
+                </span>
               </div>
               {error ? <p className="error">{error}</p> : null}
             </>

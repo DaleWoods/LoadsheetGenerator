@@ -132,6 +132,8 @@ pre {
   align-items: center;
   gap: 16px;
   padding: 0 28px;
+  /* The nav scrolls; the bar must not, or the brand slides away with it. */
+  max-width: 100%;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   position: sticky;
@@ -170,10 +172,22 @@ pre {
   display: flex;
   gap: 2px;
   margin-right: auto;
+  /*
+   * On a phone the tabs are wider than the screen, and without this the ones
+   * past the edge simply cannot be reached - the topbar does not wrap and the
+   * page scrolls vertically. Scrolled sideways instead, with the bar itself
+   * still fixed.
+   */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.topbar nav::-webkit-scrollbar {
+  display: none;
 }
 button.tab {
   background: none;
   border: none;
+  white-space: nowrap;
   border-bottom: 2px solid transparent;
   color: var(--muted);
   font: inherit;
@@ -181,9 +195,21 @@ button.tab {
   padding: 16px 14px;
   cursor: pointer;
 }
-button.tab:hover {
+/*
+ * Element-qualified, like the repository card, because the primary
+ * `button:hover:not(:disabled)` rule outranks a lone class and was filling the
+ * tab navy with navy text on it. A tap leaves the element hovered on a phone,
+ * so the current tab stayed unreadable rather than flickering.
+ */
+button.tab:hover:not(:disabled) {
   color: var(--ink);
   background: none;
+  border-color: transparent;
+  border-bottom-color: var(--line-strong);
+}
+button.tab.current:hover:not(:disabled) {
+  color: var(--navy);
+  border-bottom-color: var(--navy);
 }
 button.tab.current {
   color: var(--navy);
@@ -1221,4 +1247,21 @@ ul.facts code {
 .next-steps > .muted {
   margin: 12px 0 0;
   font-size: 12.5px;
+}
+
+/* A phone: the bar tightens so more of the tabs are in reach before scrolling. */
+@media (max-width: 640px) {
+  .topbar {
+    padding: 0 12px;
+    gap: 10px;
+  }
+  .brand-name {
+    display: none;
+  }
+  button.tab {
+    padding: 14px 10px;
+  }
+  .page {
+    padding: 16px 12px 40px;
+  }
 }

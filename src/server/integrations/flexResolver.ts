@@ -118,7 +118,11 @@ export function anthropicFlexResolver(apiKey: string): FlexResolver {
   return async ({ description, library, today }) => {
     const response = await client.messages.parse({
       model: 'claude-opus-5',
-      max_tokens: 8000,
+      // A query specification is a few hundred tokens. The headroom here is
+      // for a long IN list, not for thinking - and an unbounded ceiling is
+      // minutes of generation on a request somebody is watching, which is how
+      // a phone gives up on the connection and reports "failed to fetch".
+      max_tokens: 3000,
       system: [
         { type: 'text' as const, text: SYSTEM },
         {

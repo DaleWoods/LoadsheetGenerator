@@ -14,7 +14,7 @@
  * good field unknown and a bad one fine.
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 export interface FlexTypeKnowledge {
@@ -41,7 +41,15 @@ export interface FlexLibrary {
   notes: string[];
 }
 
+/**
+ * Beside the compiled code, put there by `copy-assets.mjs`, with the copy in
+ * `docs/` as the fallback so the tests and a ts-node run read the same file.
+ * Reaching out of `dist/` at runtime is how a server works locally and 500s
+ * on a deployment.
+ */
 function sourceFile(): string {
+  const beside = fileURLToPath(new URL('./wosg-flexisearch-queries.md', import.meta.url));
+  if (existsSync(beside)) return beside;
   return fileURLToPath(new URL('../../../docs/wosg-flexisearch-queries.md', import.meta.url));
 }
 

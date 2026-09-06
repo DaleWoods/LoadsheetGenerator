@@ -26,9 +26,16 @@ export function queryRoutes(): Router {
         res.status(503).json({ error: 'Writing a query from a description needs ANTHROPIC_API_KEY set on the server.' });
         return;
       }
+      // Timed and logged: when this fails it fails on a deployment, where the
+      // only account of it is the server log. A request that dies in the
+      // browser as "failed to fetch" leaves nothing else to go on.
+      const started = Date.now();
       try {
-        res.json(await describeQuery(parsed.data.description, anthropicFlexResolver(env.anthropicApiKey)));
+        const result = await describeQuery(parsed.data.description, anthropicFlexResolver(env.anthropicApiKey));
+        console.log(`query written in ${Date.now() - started}ms: ${result.name}`);
+        res.json(result);
       } catch (error) {
+        console.error(`query failed after ${Date.now() - started}ms:`, error);
         next(error);
       }
     })();

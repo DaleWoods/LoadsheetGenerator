@@ -11,6 +11,14 @@ for (const file of files) {
   console.log(`copied ${file} -> ${target}`);
 }
 
+// The query library is read at runtime too, and it lives in docs/ because it
+// is also a document somebody reads. Reading it from there at runtime meant the
+// server depended on a path outside dist/, which is the one thing this script
+// exists to stop.
+fs.mkdirSync('dist/server/library', { recursive: true });
+fs.copyFileSync('docs/wosg-flexisearch-queries.md', 'dist/server/library/wosg-flexisearch-queries.md');
+console.log('copied docs/wosg-flexisearch-queries.md -> dist/server/library/wosg-flexisearch-queries.md');
+
 const migrations = 'src/server/db/migrations';
 if (fs.existsSync(migrations)) {
   const target = migrations.replace(/^src\//, 'dist/');

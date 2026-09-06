@@ -361,3 +361,31 @@ landed on PriceRow because another query aliased something else to `o`, and a
 catalogue built that way calls good fields unknown and bad ones fine. And their
 queries have blank lines *inside* them, so splitting the markdown on blank
 lines gave 82 fragments that each began with SELECT and carried no FROM.
+
+## Three things the first Queries deployment got wrong
+
+**The tab was unreadable once tapped.** `button.tab:hover` is specificity
+0-1-1 and the primary `button:hover:not(:disabled)` is 0-2-1, so hovering a tab
+filled it navy and left the navy text on it. On a phone a tap leaves the
+element hovered, so the tab somebody is on stayed unreadable rather than
+flickering. The same specificity trap had already been fixed on the repository
+card and I fixed that one in place rather than looking for its siblings; it is
+in `CLAUDE.md` now.
+
+**The tabs could not all be reached on a phone.** The top bar does not wrap and
+the page scrolls vertically, so a fifth tab put Accounts past the edge with no
+way to get to it. The nav scrolls sideways now, and under 640px the bar tightens
+and the brand name gives up its space.
+
+**The request died as "failed to fetch".** Two changes, because the cause could
+not be established from the browser: `max_tokens` came down from 8000 to 3000,
+since a query specification is a few hundred tokens and the ceiling was minutes
+of possible generation on a request somebody is watching; and the route now logs
+its timing and its errors, so the next failure leaves an account of itself in
+the Render log. The client gives up at two minutes with a sentence saying so
+rather than the browser's bare TypeError.
+
+Also fixed while looking: `flexLibrary()` read its source from `docs/` through a
+path that reaches outside `dist/`. That works locally and is a file-not-found on
+a deployment - exactly what `copy-assets.mjs` exists to prevent, and it now
+copies the query library beside the code that reads it.

@@ -84,6 +84,19 @@ checking, and hides none of the result.
   was visible in these files. `exportShape.test.ts` holds the generator to
   three of them line for line.
 
+- **A `<button>` that is not a primary action needs the element in its
+  selector.** The primary `button:hover:not(:disabled)` rule is specificity
+  0-2-1, so a bare `.tab:hover` or `.repo-open:hover` loses to it and the
+  element fills navy with dark text on it - unreadable, and on a phone a tap
+  leaves it that way rather than flickering. Write
+  `button.thing:hover:not(:disabled)`. This has now cost two bugs.
+
+- **Anything the compiled server reads at runtime is copied into `dist/` by
+  `scripts/copy-assets.mjs`.** Reading a path outside `dist/` works locally,
+  where the repository is right there, and is a file-not-found on a deployment.
+  The query library lives in `docs/` because it is also a document somebody
+  reads, and it is copied beside the code that reads it.
+
 - **A query is checked more lightly than a load sheet, and deliberately.** It
   reads; a wrong one costs an error message rather than wrong data in
   production. An unknown field warns and the query still appears. Do not
