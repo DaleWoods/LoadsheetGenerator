@@ -29,7 +29,8 @@ src/server/
   db/            schema, migrations, seeding
   integrations/  the model that turns a description into a specification
 src/web/         signing in, the field picker (Mode B), the describe box (Mode A),
-                 export selection, the repository, history, accounts
+                 export selection, the query writer, the repository, history,
+                 accounts
 docs/
   loadsheet-generator-spec.md        what was asked for
   load-sheet-template-library.md     the house conventions, written up
@@ -64,6 +65,20 @@ A generated script never carries a PK or a filter nobody asked for: PKs
 identify different rows in different environments, and an export that silently
 drops rows produces a CSV that looks complete either way. See `CLAUDE.md` for
 how these calls are made.
+
+## Writing a query
+
+The **Write a query** tab turns "all orders from the last week with the order
+number and date" into FlexibleSearch. It works the same way as the
+natural-language load sheet mode: the model returns a specification - types,
+fields, joins, conditions - which is checked against a catalogue parsed from
+`docs/wosg-flexisearch-queries.md` before any SQL is written.
+
+It only reads, so the checks are lighter than a load sheet's: an unknown field
+warns and the query still appears. Three things are firmer - an export query
+must select the PK and nothing else, an undeclared alias is an error, and a PK
+written into a condition is flagged because it means a different row in every
+environment.
 
 ## The repository
 

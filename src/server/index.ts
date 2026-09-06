@@ -12,6 +12,7 @@ import { countTemplates } from './services/libraryService.js';
 import { bootstrapAdmin, countUsers, purgeExpiredSessions } from './services/userService.js';
 import { authRoutes } from './routes/auth.js';
 import { libraryRoutes } from './routes/library.js';
+import { queryRoutes } from './routes/queries.js';
 import { sheetRoutes } from './routes/sheets.js';
 import { userRoutes } from './routes/users.js';
 import type { Resolver } from './integrations/anthropic.js';
@@ -61,6 +62,7 @@ export async function createApp(injected?: Db, resolver?: Resolver): Promise<exp
   app.use('/api', requireUser);
   app.use('/api/library', libraryRoutes(db));
   app.use('/api/sheets', sheetRoutes(db, resolver));
+  app.use('/api/queries', queryRoutes());
   app.use('/api/users', userRoutes(db));
 
   const web = path.join(here, '..', '..', 'dist-web');

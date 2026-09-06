@@ -84,6 +84,13 @@ checking, and hides none of the result.
   was visible in these files. `exportShape.test.ts` holds the generator to
   three of them line for line.
 
+- **A query is checked more lightly than a load sheet, and deliberately.** It
+  reads; a wrong one costs an error message rather than wrong data in
+  production. An unknown field warns and the query still appears. Do not
+  tighten that into a load sheet's confirmation gate - but do not remove the
+  warning either, because a query that returns plausible wrong rows is how a
+  bad load sheet gets built from its output. `flexValidate.ts` holds the line.
+
 - **An export's query is half of what the export does.** It finds the rows; the
   column list decides what of each row is written. Never put a `$macro` inside
   a query: ImpEx substitutes macros everywhere in the file, so `$catalogVersion`

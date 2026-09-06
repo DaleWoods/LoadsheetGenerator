@@ -350,3 +350,34 @@ export async function downloadPackage(request: SheetRequest): Promise<DownloadRe
   URL.revokeObjectURL(url);
   return null;
 }
+
+/* --------------------------------------------------------------- queries - */
+
+export interface FlexFinding {
+  severity: 'error' | 'warning' | 'info';
+  code: string;
+  message: string;
+}
+export interface FlexResult {
+  name: string;
+  kind: 'reporting' | 'export';
+  query: string;
+  summary: string;
+  notes: string[];
+  clarification?: string;
+  findings: FlexFinding[];
+}
+
+export async function queryModes(): Promise<{ describe: boolean }> {
+  return json<{ describe: boolean }>(await fetch('/api/queries/modes'));
+}
+
+export async function describeFlexQuery(description: string): Promise<FlexResult> {
+  return json<FlexResult>(
+    await fetch('/api/queries/describe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ description }),
+    }),
+  );
+}

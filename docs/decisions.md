@@ -318,3 +318,46 @@ are, the encoding and `columnsOffset` this CSV was built for, and the tick that
 promotes the sheet to evidence. Every one is read back out of the generated
 script rather than remembered, because a note describing a different file is
 worse than none.
+
+## The Queries tab writes FlexibleSearch, and is checked more lightly on purpose
+
+Same architecture as the load sheet side, one deliberate difference.
+
+The architecture: the model returns a **specification** — types, aliases,
+fields, joins, conditions, ordering — and never query text. There is no field
+in its schema that holds SQL. Names are checked against a catalogue parsed from
+`docs/wosg-flexisearch-queries.md`, and only then does `formatFlexQuery` write
+the query. A hallucinated field reaches the screen with a warning beside it
+rather than reaching the console unremarked.
+
+The difference: **a query only reads.** A wrong load sheet writes wrong data to
+production; a wrong query costs an error message. So an unknown field is a
+warning and the query still appears, where an unverified attribute on a load
+sheet holds the download until somebody ticks a box. What is not acceptable is
+a query appearing with nothing said — one that runs and returns plausible but
+wrong rows is how a bad decision gets made, and how a bad load sheet gets built
+from its output.
+
+Three checks are firmer than the rest:
+
+- **An export query selects one column, the PK.** Selecting display columns
+  instead is exactly the mistake that made a generated export run and write
+  nothing, so it is an error rather than a warning.
+- **An alias used but never declared** is a join the model forgot; the query
+  would not parse.
+- **A PK in a condition** is warned about. Their console queries are full of
+  them, which is fine for something typed once; a query somebody keeps and runs
+  in another environment silently returns nothing.
+
+The shape of the specification was measured, not designed. Across their 82
+queries: 43 select with labels, 32 join, 32 have a WHERE, 11 order, 10 are
+DISTINCT — all covered. Subselects (5), CASE (7), GROUP BY (2) and UNION (1)
+are the tail, and a request needing one gets a question back rather than a
+query that half does it.
+
+Parsing their library taught two things worth keeping. Aliases must resolve
+inside the query that declares them — resolved across the file, `{o:code}`
+landed on PriceRow because another query aliased something else to `o`, and a
+catalogue built that way calls good fields unknown and bad ones fine. And their
+queries have blank lines *inside* them, so splitting the markdown on blank
+lines gave 82 fragments that each began with SELECT and carried no FROM.
