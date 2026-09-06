@@ -1,15 +1,16 @@
 /**
- * What to do with the zip, once you have it.
+ * What is true about the file you have just taken.
  *
- * The app stops at the download and HAC is somebody else's screen, so this is
- * the one place the handover is written down. It is aimed at somebody who has
- * never opened an ImpEx file: the facts come out of the script they are
- * actually holding - the file name, the encoding, how many heading lines are
- * skipped - rather than from a remembered example, because a checklist that
- * describes a different file is worse than none.
+ * This started as a four-step HAC walkthrough, written on the assumption that
+ * the reader might not have imported one before. They have. Telling somebody
+ * who writes ImpEx to validate before importing is noise, and noise next to
+ * the one line that matters is what stops the line being read.
  *
- * The HAC steps themselves are deliberately short and free of button names.
- * Naming a control that has since moved teaches people to distrust the rest.
+ * What is left is only what is specific to *this* file and could catch
+ * somebody out: the two names that have to stay as they are, the offset the
+ * CSV was built for, and the tick that turns a sheet into evidence. Every fact
+ * is read back out of the generated script rather than remembered, because a
+ * note describing a different file is worse than none.
  */
 
 import { readIncludeCall } from '../shared/impex.js';
@@ -18,69 +19,41 @@ interface Props {
   impex: string;
   impexFilename: string;
   csvFilename: string | null;
-  rowCount: number;
 }
 
-export function NextSteps({ impex, impexFilename, csvFilename, rowCount }: Props): JSX.Element {
+export function NextSteps({ impex, impexFilename, csvFilename }: Props): JSX.Element {
   const include = readIncludeCall(impex);
 
   return (
     <div className="next-steps">
-      <h3>You have the file. Here is what happens next.</h3>
-      <ol className="steps">
+      <h3>In the zip</h3>
+      <ul className="facts">
         <li>
-          <strong>Fill the CSV in, if it is still empty.</strong>{' '}
-          {rowCount > 0 ? (
-            <>
-              It already has {rowCount} row{rowCount === 1 ? '' : 's'}. Add more the same way if you need them.
-            </>
-          ) : (
-            <>Open {csvFilename ?? 'the CSV'} in Excel and put a row in for each record. Leave the greyed columns empty.</>
-          )}
-          {include ? (
+          <code>{impexFilename}</code>
+          {csvFilename ? (
             <>
               {' '}
-              Keep the heading row — the script skips {include.linesToSkip} line
-              {include.linesToSkip === 1 ? '' : 's'} and would otherwise read your first record as headings. Save it as
-              CSV, not as a workbook.
+              and <code>{csvFilename}</code>. The script reads the CSV by name, so it has to keep that one.
             </>
-          ) : null}
+          ) : (
+            <> — the rows are inside the script, so there is no second file.</>
+          )}
         </li>
-
-        {csvFilename ? (
+        {include ? (
           <li>
-            <strong>Upload both files together</strong> in HAC's ImpEx import. The script reads the CSV by name, so{' '}
-            <code>{csvFilename}</code> has to keep exactly that name
-            {include ? (
-              <>
-                {' '}
-                and be read as <strong>{include.encoding}</strong>, separated by{' '}
-                <code>{include.delimiter === '\t' ? 'tab' : include.delimiter}</code>
-              </>
-            ) : null}
-            . Renaming it is the most common reason an import finds nothing.
+            Written for <strong>{include.encoding}</strong>,{' '}
+            <code>{include.delimiter === '\t' ? 'tab' : include.delimiter}</code>-separated,{' '}
+            <strong>columnsOffset {include.columnsOffset}</strong>
+            {include.columnsOffset === 0
+              ? ' — the CSV has the leading blank type column, so keep it when you edit.'
+              : ' — the CSV has no leading type column, so do not add one.'}
           </li>
-        ) : (
-          <li>
-            <strong>Paste {impexFilename} into HAC's ImpEx import.</strong> This one carries its rows inside the script,
-            so there is no second file.
-          </li>
-        )}
-
+        ) : null}
         <li>
-          <strong>Validate before you import.</strong> HAC will check the script without writing anything. A clean
-          validation is the last chance to catch a wrong column before it reaches live data.
+          If it imports cleanly, say so below. That is what promotes the sheet to evidence and stops its fields being
+          flagged unverified next time.
         </li>
-
-        <li>
-          <strong>Come back and say it worked.</strong> Saving this sheet and ticking “it has imported cleanly” is what
-          teaches the app which fields are real — it is the only way anything here gets more reliable.
-        </li>
-      </ol>
-      <p className="muted">
-        These steps are written from the script, not from HAC itself. If your process differs, say so and they will be
-        corrected.
-      </p>
+      </ul>
     </div>
   );
 }

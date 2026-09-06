@@ -1205,16 +1205,17 @@ textarea.paste.short {
   margin: 0 0 12px;
   font-size: 15px;
 }
-ol.steps {
+ul.facts {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
   display: grid;
-  gap: 10px;
-  font-size: 13.5px;
-  line-height: 1.55;
+  gap: 7px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--ink-2);
 }
-ol.steps strong {
+ul.facts strong,
+ul.facts code {
   color: var(--ink);
 }
 .next-steps > .muted {

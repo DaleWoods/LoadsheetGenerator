@@ -93,24 +93,41 @@ has never written is dropped in favour of the one the closest sheet uses. This
 is §6.1 read strictly - a hallucinated modifier should have nothing to travel
 through.
 
-## The app is written for somebody who does not read ImpEx
+## The app is written for somebody who reads ImpEx but should not have to
 
-The people who need a load sheet are merchandisers and e-commerce staff; the
-people who read ImpEx are a subset of them. So the interface leads with what a
-thing *does* and keeps the script itself one click away rather than in front:
+**Corrected.** This section first said the app was written for somebody who
+does *not* read ImpEx, and several things were built on that: the script folded
+away behind a disclosure, a four-step HAC walkthrough, an intention to add a
+first-run tutorial. It was wrong. The people using this write load sheets and
+ImpEx already; what they lack is the time to write another one by hand, not the
+knowledge to read it.
 
-- The build page is seven numbered steps rather than a wall of controls.
-- The generated CSV is rendered as a spreadsheet, because a line of commas is
-  not something anybody can check. The `.impex` is behind a disclosure.
-- A validator finding is headed "Fix this" / "Worth a look" / "For
-  information" rather than error / warning / info.
-- A repository entry leads with a sentence - "Loads 2 fields onto Product
-  records, from a CSV" - and drops the file path, the CSV name and the column
-  offset from the card face. All three are still in the panel beside it, which
-  is where somebody who wants them is looking.
+So the standard is: **do the work for them, and show them everything.** Never
+explain their own job back to them.
 
-None of this hides a decision the user has to make. The unverified-attribute
-tick and the download button stay together and stay plain.
+What that keeps, because it serves an expert just as well:
+
+- The generated CSV rendered as a spreadsheet. A line of commas is not
+  something anybody can check by eye, however well they know ImpEx.
+- The repository entries leading with a sentence of what a sheet does. That is
+  for scanning 109 of them, not for explaining what a load sheet is.
+- The validator findings, and the confirmation on an unverified attribute. An
+  expert wants a wrong column caught before HAC does, not after.
+
+What it reversed:
+
+- **The script is shown, not hidden.** It is the thing they are being asked to
+  trust, and it was behind a click.
+- **No walkthrough after the download.** What is left says only what is
+  specific to the file in the zip: the names that have to stay, the encoding
+  and offset it was built for, and the tick that promotes it to evidence.
+- **No first-run tutorial**, and no plainer word for `columnsOffset`,
+  `INSERT_UPDATE` or a macro. Those are the vocabulary, not jargon to be
+  translated away.
+
+The look is still meant to be warm rather than austere. Warm is not the same as
+simplified — it is the difference between a tool that is pleasant to spend the
+afternoon in and one that assumes you have never seen a header line.
 
 ## The repository is two scrolling panes, not one long page
 
@@ -277,13 +294,10 @@ list longer than the rows carries the values on to all of them; a list shorter
 than the rows drops the extras, because a row nobody named a record for cannot
 import.
 
-The second is `NextSteps`, shown when the zip is actually taken. Its facts are
-read back out of the generated script — the file name, the encoding, how many
-heading lines are skipped — rather than written from a remembered example,
-because a checklist describing a different file is worse than none. The HAC
-steps themselves are short and name no buttons: a control that has since moved
-teaches people to distrust the rest of the list, and the process is not
-something the app can see. It says so, and invites correction.
-
-Both were built for an audience that has never opened an ImpEx file, which is
-who Dale says will be using it.
+The second is `NextSteps`, shown when the zip is actually taken. It began as a
+four-step HAC walkthrough and was cut to three facts once it was clear the
+readers import ImpEx for a living: the two file names that have to stay as they
+are, the encoding and `columnsOffset` this CSV was built for, and the tick that
+promotes the sheet to evidence. Every one is read back out of the generated
+script rather than remembered, because a note describing a different file is
+worse than none.

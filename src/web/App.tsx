@@ -471,7 +471,6 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
               impex={preview.impex.content}
               impexFilename={preview.impex.filename}
               csvFilename={preview.csvs[0]?.filename ?? null}
-              rowCount={aligned?.rows.length ?? 0}
             />
           ) : null}
           {preview && saved === null ? (

@@ -2,10 +2,12 @@
  * What was generated, before it is downloaded (§6.1, §6.4).
  *
  * Ordered by what somebody needs to decide: what this will do, then anything
- * wrong with it, then the CSV as a sheet they can read - and only then, folded
- * away, the ImpEx itself. Most of the people using this are not going to read
- * the script, and putting it first made the app look like it was for somebody
- * else. The people who do read it are one click away.
+ * wrong with it, then the two files it produced.
+ *
+ * The script is shown, not folded away. It was hidden behind a disclosure on
+ * the assumption that most people here would not read it; they would, because
+ * they write ImpEx already, and the script is the thing they are being asked
+ * to trust. It stays collapsible for when it is not what you are checking.
  *
  * The findings come before the files because they are the reason the app
  * exists: the failures this replaces are a mismatched column count and a wrong
@@ -131,7 +133,7 @@ export function SheetPreview({ preview, pending, error, onDownload, downloading,
         </>
       ) : null}
 
-      <details className="reveal">
+      <details className="reveal" open>
         <summary>The ImpEx script — {preview.impex.filename}</summary>
         <div className="reveal-body">
           <pre className="file">{preview.impex.content}</pre>

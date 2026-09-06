@@ -58,6 +58,23 @@ script has to survive:
   like that becomes wanted, it is a visible choice on the export panel, never a
   default.
 
+## Who this is for
+
+People who write load sheets and ImpEx already. What they are short of is the
+hour it takes to write another one by hand, not the knowledge to read it.
+
+**Do the work for them, and show them everything.** Never explain their own job
+back to them: no walkthrough of how to import in HAC, no first-run tutorial, no
+plainer word for `columnsOffset` or `INSERT_UPDATE` - that is the vocabulary,
+not jargon. The generated script is shown, not folded away, because it is what
+they are being asked to trust.
+
+Plain writing still earns its place where it saves time rather than assumes
+ignorance: the CSV drawn as a spreadsheet, because a line of commas cannot be
+checked by eye; a sentence saying what a repository sheet does, because there
+are 109 to scan. The line to hold is that the app does the typing and the
+checking, and hides none of the result.
+
 ## Things that will bite you
 
 - **An export's query is half of what the export does.** It finds the rows; the

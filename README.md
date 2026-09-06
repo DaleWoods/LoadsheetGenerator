@@ -118,12 +118,13 @@ anything added since is gone.
 
 ## After the download
 
-The zip is where the app's job ends, but not where the work does, so the
-download is followed by what to do with it: fill the CSV in, upload both files
-together under the name the script reads, validate before importing, and come
-back to say it worked. The facts in it are read back out of the generated
-script rather than written from an example. The HAC steps are not something the
-app can verify - they say so.
+The download is followed by what is true about the file you are holding: the
+two names that have to stay as they are, the encoding and `columnsOffset` the
+CSV was built for, and the tick that promotes the sheet to evidence. Read back
+out of the generated script rather than written from an example.
+
+It is deliberately not a walkthrough. The people using this import ImpEx for a
+living - see `CLAUDE.md` for what that rules in and out.
 
 ## Keeping the documents current
 
