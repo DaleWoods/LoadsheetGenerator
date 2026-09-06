@@ -6,7 +6,7 @@ import { aliasFor, buildExportQuery, catalogVersionValues, selectionProblems } f
 import { packageLoadSheet } from './packageSheet.js';
 import { normaliseSeed } from '../library/seedTemplates.js';
 import { readSeedFile } from '../library/seedLibrary.js';
-import type { ExportSelection } from '../../shared/spec.js';
+import type { ExportSelection, LoadSheetSpec } from '../../shared/spec.js';
 
 const templates = normaliseSeed(readSeedFile());
 const catalogue = buildCatalogue(templates);
@@ -50,6 +50,27 @@ describe("the query written the way WOSG write one", () => {
     // The subselect this replaced, and the macro that must never appear.
     expect(built.query).not.toContain('IN ({{');
     expect(built.query).not.toContain('$catalogVersion');
+  });
+
+  it('warns when a PK has found its way into the query, but not on a SKU', () => {
+    const spec = (selection: ExportSelection): LoadSheetSpec =>
+      composeSpec(
+        { name: 'Approved Export', itemType: 'Product', fields: [{ name: 'akamaiRoundel' }], direction: 'export', export: selection },
+        context,
+      );
+
+    // 8796100493403 is "Approved" in one environment and something else in the
+    // next, so a script carrying it returns nothing there rather than failing.
+    const withPk = generateLoadSheet(
+      spec({ kind: 'attributeWildcard', attribute: 'approvalStatus', pattern: '8796100493403' }),
+      context,
+      at,
+    );
+    expect(withPk.findings.find((f) => f.code === 'export.pkInQuery')).toMatchObject({ severity: 'warning' });
+
+    // An eight-digit SKU is not a PK and must not be treated as one.
+    const withSku = generateLoadSheet(spec({ kind: 'skuList', codes: ['17331268', '17331097'] }), context, at);
+    expect(withSku.findings.find((f) => f.code === 'export.pkInQuery')).toBeUndefined();
   });
 
   it('leaves the joins out when there is no catalog version to restrict to', () => {

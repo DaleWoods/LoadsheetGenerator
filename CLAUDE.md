@@ -24,6 +24,40 @@ Do not describe a number, a label or a list that the code derives - name the
 behaviour instead. "The folder each script lives in becomes a folder in the
 tree" survives a reorganisation; "the six folders" does not.
 
+## Who decides how a script is written
+
+Dale has left the shape of the ImpEx, the load sheets and the queries to
+whoever is working on this. That is authority to decide, not licence to invent:
+the ordering below is the standard.
+
+1. **A WOSG script that has done this.** The library is 109 of them and it is
+   the strongest evidence there is. `columnsOffset` and the CSV layout are
+   *only* ever copied from one.
+2. **A convention consistent across their work.** Two or more examples agreeing
+   makes a house style worth following - the initials alias and the joined
+   catalog restriction in `docs/wosg-flexisearch-queries.md` are that.
+3. **Judgement, said out loud.** Where the evidence is thin, silent or
+   contradictory, decide on the merits and write down the reasoning in
+   `docs/decisions.md`. Do not stretch one example into a rule it does not
+   support, and do not copy something across from a different context because
+   it is the only example to hand - their console queries are written to be
+   read once by a person, and a generated script is not.
+
+Two things override any evidence, because they are about what a generated
+script has to survive:
+
+- **Nothing environment-specific.** A PK identifies a row in one environment
+  and something else in the next. Their queries are full of them, with the
+  meanings noted alongside, and that is fine for a query typed into Staging.
+  A generated script names things by what they are - `{c:id} =
+  'masterProductCatalog'` - and `export.pkInQuery` warns when one gets through.
+- **Nothing that quietly narrows a result.** Several of their product queries
+  filter to approved (`{p:approvalstatus} = 8796100493403`). An export that
+  drops rows without saying so is worse than one that returns too many: the CSV
+  looks complete either way, and only one of them can be checked. If a filter
+  like that becomes wanted, it is a visible choice on the export panel, never a
+  default.
+
 ## Things that will bite you
 
 - **An export's query is half of what the export does.** It finds the rows; the

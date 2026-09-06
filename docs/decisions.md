@@ -237,3 +237,28 @@ to export — and none of them carries a `setTargetFile` or `exportItems` line.
 So `export.mechanicsUnverified` stays, narrowed to say exactly that: the
 columns and the query are WOSG's, the two lines around them are from the
 documentation. One real export script would close it.
+
+## A generated script carries no PK, and no silent filter
+
+Two decisions taken under the standing authority to judge how scripts are
+written (see `CLAUDE.md`), both about what a script has to survive after it
+leaves the app.
+
+**No PKs.** WOSG's console queries match on them freely —
+`{p:approvalstatus} = 8796100493403`, with "Approved" written down beside it —
+and for a query typed into Staging and read once that is fine. A generated
+script is run somewhere else later, where the same row has a different PK, so
+it returns nothing rather than failing: the worst shape a bug can take. The
+generator names things by what they are, the way the catalog restriction names
+`masterProductCatalog` and `Staged`, and `export.pkInQuery` warns when a
+twelve-digit number reaches a query. Twelve because their PKs are thirteen
+digits and a SKU is eight, so it cannot fire on a real product code.
+
+**No filter the user did not ask for.** Several of their product queries
+restrict to approved products, and it would have been easy to read that as the
+house default. It is not being copied. An export that drops rows without saying
+so is worse than one that returns too many: both produce a CSV that looks
+complete, and only the second can be checked by looking at it. If restricting
+to approved becomes something people want, it belongs on the export panel as a
+visible choice with the row count changing in front of them — not in the
+generator as a default nobody sees.

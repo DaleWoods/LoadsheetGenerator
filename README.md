@@ -61,6 +61,11 @@ pinned by tests. The `setTargetFile` and `exportItemsFlexibleSearch` lines
 around it are still written from the ImpEx documentation, and every generated
 export says so until a real export script is added to the library.
 
+A generated script never carries a PK or a filter nobody asked for: PKs
+identify different rows in different environments, and an export that silently
+drops rows produces a CSV that looks complete either way. See `CLAUDE.md` for
+how these calls are made.
+
 ## The repository
 
 One store, two shelves. **Already run against production** is the scripts WOSG

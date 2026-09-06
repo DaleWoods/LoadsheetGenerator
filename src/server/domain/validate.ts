@@ -115,6 +115,28 @@ export function validate(input: ValidationInput): Finding[] {
             'The export query contains a macro reference. ImpEx expands macros everywhere, so this would put a column definition inside the query.',
         });
       }
+      /*
+       * A PK in the query is a value from one environment written into a script
+       * that will be run in another. WOSG's console queries are full of them -
+       * `{p:approvalstatus} = 8796100493403`, with the meanings written down
+       * beside them - which is fine for a query typed into Staging and read
+       * once, and not fine in a generated script: the same row has a different
+       * PK in Production, so the export silently matches nothing rather than
+       * failing. Name things by what they are instead, the way the catalog
+       * restriction names masterProductCatalog and Staged.
+       *
+       * Twelve digits, because their PKs are thirteen and a SKU is eight, so
+       * this cannot fire on a real product code.
+       */
+      const pk = /(?<![.\d])\d{12,}(?![.\d])/.exec(queryLine)?.[0];
+      if (pk) {
+        add({
+          severity: 'warning',
+          code: 'export.pkInQuery',
+          message:
+            `The export query matches on ${pk}, which looks like a PK. PKs differ between environments, so a script carrying one runs in Staging and quietly returns nothing in Production. Match on the value it stands for instead.`,
+        });
+      }
       if (input.resolved.blocks.some((b) => b.columns.some((c) => c.column.kind === 'macro' && /catalogversion/i.test(c.column.name))) && !catalogVersionValues(input.resolved.macros)) {
         add({
           severity: 'warning',
