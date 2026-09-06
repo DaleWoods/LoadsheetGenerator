@@ -34,6 +34,7 @@ export const CATALOGS: Catalog[] = [
   // The master catalogs. Every load sheet in the library writes to the master
   // product catalog, Staged - `$productCatalog=masterProductCatalog` is the
   // id, which the scripts give and the backoffice list shows as a name.
+  // Staged only, confirmed - not merely unobserved on the list.
   { name: 'Master Product Catalog', kind: 'product', versions: ['Staged'] },
   { name: 'Master Content Catalog', kind: 'content', versions: ['Staged', 'Online'] },
   { name: 'Default-Catalog', kind: 'other', versions: ['Staged', 'Online'] },
@@ -102,6 +103,7 @@ export function catalogsForPrompt(): string {
     '',
     `Product load sheets write to ${DEFAULT_PRODUCT_CATALOG_ID} / ${DEFAULT_CATALOG_VERSION} unless the request says otherwise - that is what every script in the library does. In ImpEx the id is ${DEFAULT_PRODUCT_CATALOG_ID}, not the display name above.`,
     'A fascia has its own product and content catalog; the Rolex boutiques have content only.',
-    'The list was read from a scrolling table, so a version not shown above may still exist. Never invent a catalog name that is not listed.',
+    'Master Product Catalog has a Staged version only - there is no Online one, so never write a query or a sheet against masterProductCatalog / Online.',
+    'The rest of the list was read from a scrolling table, so a version not shown above may still exist. Never invent a catalog name that is not listed.',
   ].join('\n');
 }

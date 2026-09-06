@@ -405,11 +405,13 @@ because it is 82 queries that would be miserable to retype; this is eleven rows
 that want to be exact, and a hand-written markdown table would be one
 mis-aligned pipe away from putting orders in the wrong fascia.
 
-**The gaps stay gaps.** Hallmark is a UK base store and its order prefix was
-not given, so it has none — a guessed prefix would put orders in the wrong
-fascia and look right doing it. The prompt says "order prefix not known" and is
-told to say so rather than assume. `sites.test.ts` asserts the absence, so
-filling it in is a deliberate act rather than a drift.
+**The gaps stay gaps until they are filled by somebody who knows.** Hallmark's
+prefix (`gbc`) and Betteridge's (`usb`, the `ubc` was a slip) came back within
+the hour, so every transactional site now has one and the test asserts that.
+What is still absent is absent on purpose: the Rolex boutiques take no orders
+at all, so they have no prefix to know, and the prompt says "takes no orders"
+rather than "prefix not known" — an order query should leave them out rather
+than include them and return nothing.
 
 The click-and-collect rule is the one that earns its place immediately: a
 click-and-collect order is numbered from the store it is collected at — `S`,
@@ -418,10 +420,29 @@ then a three or four digit store number, then the order's digits — so it does
 collects" answerable as "the code does not begin with S", which is exactly what
 the first real query asked for and the app could not have known.
 
-Two things were reported inconsistently and are recorded as they were resolved:
-Betteridge was given both `usb` and `ubc`, and only `usb` is stored; and the
-three Rolex boutique sites are on the Website list but were not named as base
-stores, so they are marked as boutiques rather than quietly promoted.
+## The field that marks a click and collect has not been found, only narrowed
+
+Asked where an order declares itself direct or click-and-collect, the query
+library gives two candidates and settles neither:
+
+- `{o:deliveryType}`, an enum. Their own note says so — *"'Sales Application'
+  and 'Delivery Type' are enum types so they need EnumerationValue"* — and two
+  of their queries join it that way.
+- `{o:deliveryMode}`, the standard Commerce one, LEFT JOINed to `DeliveryMode`
+  in another.
+
+What no query records is which **value** of either means click and collect. One
+of them matches on `"8796122218587"` with no note of what that is, which is the
+PK habit the app already refuses to copy.
+
+So neither is used. A condition on a guessed enum value returns a plausible
+number of wrong rows, which is worse than the rule that is known to hold: a
+click-and-collect order's code begins with `S`. Both fields are recorded in
+`FULFILMENT_FIELDS` with empty `values`, the prompt is told not to write a
+condition on either and to say so if a request turns on it, and
+`deliveryTypeProbe()` is the one query that would settle it in a few seconds
+in the console. The test asserts the values are still empty, so filling them in
+is deliberate.
 
 `src/shared/catalogs.ts` is the same idea for the catalog versions. Every
 generated sheet restricts itself to one, and the only one the app had ever seen

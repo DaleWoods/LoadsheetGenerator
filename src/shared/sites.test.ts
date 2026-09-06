@@ -4,7 +4,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { CLICK_AND_COLLECT_PREFIX, SITES, findSite, sitesForPrompt, sitesIn } from './sites.js';
+import {
+  CLICK_AND_COLLECT_PREFIX,
+  FULFILMENT_FIELDS,
+  SITES,
+  deliveryTypeProbe,
+  findSite,
+  sitesForPrompt,
+  sitesIn,
+} from './sites.js';
 
 describe('the sites and what their order numbers look like', () => {
   it('has the uids exactly as backoffice lists them', () => {
@@ -44,9 +52,25 @@ describe('the sites and what their order numbers look like', () => {
     expect(findSite('Mayors')?.orderPrefix).toBe('usy');
     expect(findSite('Betteridge')?.orderPrefix).toBe('usb');
     expect(findSite('Watches of Switzerland US')?.orderPrefix).toBe('usw');
-    // Hallmark's was never given. A guessed prefix would put orders in the
-    // wrong fascia and look right doing it, so the gap stays a gap.
-    expect(findSite('Hallmark')?.orderPrefix).toBeUndefined();
+    expect(findSite('Hallmark')?.orderPrefix).toBe('gbc');
+  });
+
+  it('gives no order prefix to a site that takes no orders', () => {
+    for (const site of SITES.filter((s) => !s.transactional)) {
+      expect(site.orderPrefix, site.uid).toBeUndefined();
+    }
+    expect(SITES.filter((s) => s.transactional)).toHaveLength(7);
+    expect(SITES.filter((s) => s.transactional).every((s) => s.orderPrefix !== undefined)).toBe(true);
+  });
+
+  it('has not guessed which delivery type means click and collect', () => {
+    // Both fields are in their own queries; neither library nor anybody has
+    // said what the values are, and a condition on a guessed enum returns a
+    // plausible number of wrong rows.
+    expect(FULFILMENT_FIELDS.deliveryType.values).toEqual([]);
+    expect(FULFILMENT_FIELDS.deliveryMode.values).toEqual([]);
+    expect(deliveryTypeProbe()).toContain('JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}');
+    expect(sitesForPrompt()).toContain('do not write a condition on either');
   });
 
   it('gives every prefix to exactly one site', () => {
@@ -60,6 +84,6 @@ describe('the sites and what their order numbers look like', () => {
     expect(prompt).toContain('S046814270');
     expect(prompt).toContain('does not begin with S');
     // And it must not offer a prefix nobody gave it.
-    expect(prompt).toContain('order prefix not known');
+    expect(prompt).toContain('Where a prefix is not listed above, say so');
   });
 });
