@@ -66,6 +66,21 @@ identify different rows in different environments, and an export that silently
 drops rows produces a CSV that looks complete either way. See `CLAUDE.md` for
 how these calls are made.
 
+## What the app knows
+
+Three bodies of knowledge, all of them WOSG's rather than invented:
+
+- `src/server/library/loadsheet-extraction-raw.json` and
+  `docs/wosg-loadsheets/` - the 107 scripts the team has run, which is where
+  every column shape, CSV layout and `columnsOffset` comes from.
+- `docs/wosg-flexisearch-queries.md` - 82 backoffice queries, parsed into the
+  types, fields and joins the query writer works from.
+- `src/shared/sites.ts` and `src/shared/catalogs.ts` - the fascias, their uids,
+  their order-number prefixes, the click-and-collect rule, and every catalog
+  with the versions it has. These had to be told to the app; they are not
+  derivable from either of the others. Where a value is unknown it is absent
+  and says so.
+
 ## Writing a query
 
 The **Write a query** tab turns "all orders from the last week with the order

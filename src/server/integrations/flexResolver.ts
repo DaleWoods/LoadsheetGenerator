@@ -15,6 +15,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod/v4';
+import { catalogsForPrompt } from '../../shared/catalogs.js';
+import { sitesForPrompt } from '../../shared/sites.js';
 import type { FlexLibrary } from '../library/flexLibrary.js';
 
 const fieldRef = z.object({
@@ -89,10 +91,11 @@ Work from the catalogue you are given, which is read out of the queries this tea
 - Set distinct when a join would otherwise repeat a row.
 - Dates are written as literal timestamps, 'YYYY-MM-DD HH:MM:SS'. Resolve a relative range yourself against the date you are given, and say in notes what range you used.
 - Never match on a PK. The catalogue lists a few they use, but a PK is a different row in every environment, so a query carrying one returns nothing when it is run somewhere else. Match on the code or the name instead, joining EnumerationValue where the field is an enum.
+- The sites, their order-number prefixes and the click-and-collect rule are given below. Use them: "UK orders" means the UK sites' prefixes or their base stores, and "direct orders, no click and collects" means order codes that do not begin with S. Never invent a prefix that is not listed.
 - Ask a clarifying question only when you genuinely cannot answer - the request needs a subselect, a GROUP BY, an aggregate or a CASE, which this shape does not carry - or when two readings would return different rows.`;
 
 export function catalogueForPrompt(library: FlexLibrary, limit = 40): string {
-  const lines: string[] = ['TYPES AND THE FIELDS THEY HAVE QUERIED', ''];
+  const lines: string[] = [sitesForPrompt(), '', catalogsForPrompt(), '', 'TYPES AND THE FIELDS THEY HAVE QUERIED', ''];
   for (const type of library.types.slice(0, limit)) {
     lines.push(`${type.type} (${type.uses} queries): ${type.fields.join(', ')}`);
   }

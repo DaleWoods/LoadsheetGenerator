@@ -389,3 +389,51 @@ Also fixed while looking: `flexLibrary()` read its source from `docs/` through a
 path that reaches outside `dist/`. That works locally and is a file-not-found on
 a deployment - exactly what `copy-assets.mjs` exists to prevent, and it now
 copies the query library beside the code that reads it.
+
+## The sites are knowledge the app had to be told
+
+Nothing about which fascias exist, what their order numbers look like, or how a
+click-and-collect order differs from a direct one is derivable from the load
+sheets or the query library. The app was inferring it. `Goldsmiths_UK` went
+into a Display On Site sheet because the model spelled it from the word
+"Goldsmiths" — right, and unverifiable. `src/shared/sites.ts` holds it now,
+with the uids taken exactly off the Website list in backoffice, and both
+prompts carry it: the query writer and the load sheet drafter.
+
+It is a typed module rather than a parsed document. The query library is parsed
+because it is 82 queries that would be miserable to retype; this is eleven rows
+that want to be exact, and a hand-written markdown table would be one
+mis-aligned pipe away from putting orders in the wrong fascia.
+
+**The gaps stay gaps.** Hallmark is a UK base store and its order prefix was
+not given, so it has none — a guessed prefix would put orders in the wrong
+fascia and look right doing it. The prompt says "order prefix not known" and is
+told to say so rather than assume. `sites.test.ts` asserts the absence, so
+filling it in is a deliberate act rather than a drift.
+
+The click-and-collect rule is the one that earns its place immediately: a
+click-and-collect order is numbered from the store it is collected at — `S`,
+then a three or four digit store number, then the order's digits — so it does
+*not* carry its site's prefix. That makes "direct orders only, no click and
+collects" answerable as "the code does not begin with S", which is exactly what
+the first real query asked for and the app could not have known.
+
+Two things were reported inconsistently and are recorded as they were resolved:
+Betteridge was given both `usb` and `ubc`, and only `usb` is stored; and the
+three Rolex boutique sites are on the Website list but were not named as base
+stores, so they are marked as boutiques rather than quietly promoted.
+
+`src/shared/catalogs.ts` is the same idea for the catalog versions. Every
+generated sheet restricts itself to one, and the only one the app had ever seen
+was `masterProductCatalog` / `Staged` copied out of the scripts — it could not
+have answered "the same thing but for Mayors". Each fascia has a product and a
+content catalog, both Staged and Online; the Rolex boutiques have content only.
+
+Three things are recorded rather than tidied away. The Backoffice Configuration
+Catalog is kept *because* it is marked "do not use" — dropping it would let the
+name be invented back in as plausible. Five un-regioned content catalogs
+(`Goldsmiths_ContentCatalog` beside `Goldsmiths_UK_ContentCatalog`) sit on the
+list next to the regioned ones and nobody has said which is current, so they
+carry that sentence rather than a guess. And the list was read from a scrolling
+table, so the prompt is told that a version it cannot see may still exist —
+absence of evidence, said out loud.

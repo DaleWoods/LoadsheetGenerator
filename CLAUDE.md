@@ -84,6 +84,14 @@ checking, and hides none of the result.
   was visible in these files. `exportShape.test.ts` holds the generator to
   three of them line for line.
 
+- **`src/shared/sites.ts` and `src/shared/catalogs.ts` are business knowledge,
+  not derived data.** The fascias, their uids, their order-number prefixes, the
+  click-and-collect rule and the catalog versions cannot be worked out from the
+  library - the app has to be told. Both prompts carry them. Where a value is
+  not known it is absent and the prompt says so; never fill one in to make the
+  table look complete, because a wrong prefix puts orders in the wrong fascia
+  and a wrong catalog writes to the wrong one, and both look right doing it.
+
 - **A `<button>` that is not a primary action needs the element in its
   selector.** The primary `button:hover:not(:disabled)` rule is specificity
   0-2-1, so a bare `.tab:hover` or `.repo-open:hover` loses to it and the

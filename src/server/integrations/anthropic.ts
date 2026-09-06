@@ -20,6 +20,8 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 // typed against zod 4, which ships inside the same zod package. The routes use
 // the v3 entry point; the two do not meet.
 import { z } from 'zod/v4';
+import { catalogsForPrompt as wosgCatalogsForPrompt } from '../../shared/catalogs.js';
+import { sitesForPrompt } from '../../shared/sites.js';
 import type { Catalogue } from '../domain/catalogue.js';
 import { env } from '../config/env.js';
 
@@ -108,6 +110,7 @@ Work from the catalogue you are given, which is everything the app knows:
   - When the request says how many records but not which, return that many rows. When it says neither, return one, so there is an example of the shape to copy down.
   - Leave a cell empty rather than guessing at it, and never invent a code, a SKU or a value the request does not give you. An empty cell is the user's to fill in; a wrong one is a bad import.
 - Booleans are written TRUE and FALSE.
+- A site is written by its uid, and the uids are listed below. "Goldsmiths" is Goldsmiths_UK; do not spell one from the name.
 - A localized attribute wanted in more than one language is one entry per language, each with the shape for that language set in variant. The house convention writes the primary language as \`[lang=$lang]\` and the US one as \`[lang=$lang2]\`, and the catalogue lists the shapes it has. One entry produces one column, so a request for UK and US descriptions that returns a single description field gives them half the sheet.
 - An export pulls data out rather than loading it in: it has no rows going in, and it needs to say which records to pull - a list of codes the request names, a code wildcard, or a wildcard on another attribute. The columns are still chosen the same way.
 - Ask a clarifying question only when you genuinely cannot resolve the request - not to confirm something you can already work out.`;
@@ -134,7 +137,7 @@ export type Resolver = (input: ResolverInput) => Promise<ResolverResult>;
  * append and remove is a judgement the request often settles.
  */
 export function catalogueForPrompt(catalogue: Catalogue): string {
-  const lines: string[] = ['# Item types', ''];
+  const lines: string[] = ['# Sites', '', sitesForPrompt(), '', '# Catalogs', '', wosgCatalogsForPrompt(), '', '# Item types', ''];
   for (const type of catalogue.itemTypes) {
     lines.push(`- ${type.itemType} (${type.attributes} attributes, used by ${type.templates} of the team's sheets)`);
   }
