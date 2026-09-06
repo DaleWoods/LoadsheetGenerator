@@ -57,34 +57,82 @@ function whatItDoes(entry: RepositoryEntry): string {
  * part tells you anything, so that is what is set in the title and the rest is
  * dropped - the whole path is still in the panel beside it.
  */
-function leafOf(name: string, group: string): string {
-  const parts = name.split(' / ');
-  const withoutGroup = parts[0] === group ? parts.slice(1) : parts;
-  return withoutGroup.slice(-1)[0] ?? name;
+/**
+ * The folders each sheet lives in, and its own name.
+ *
+ * A record's name is its path in the loadsheets folder - "Products / Akamai /
+ * Roundels / Import" - so splitting it gives back the tree the scripts are
+ * actually kept in. That is the arrangement the team already knows, and it is
+ * the one worth showing: 109 sheets in one list is unreadable however it is
+ * sorted, but six folders is nothing.
+ */
+function pathOf(entry: RepositoryEntry): { folders: string[]; leaf: string } {
+  const parts = entry.name.split(' / ').map((part) => part.trim()).filter((part) => part.length > 0);
+  const leaf = parts.pop() ?? entry.name;
+  return { folders: parts, leaf };
 }
 
-function trailOf(name: string, group: string): string | null {
-  const parts = name.split(' / ');
-  const withoutGroup = parts[0] === group ? parts.slice(1) : parts;
-  return withoutGroup.length > 1 ? withoutGroup.slice(0, -1).join(' / ') : null;
+interface FolderNode {
+  name: string;
+  path: string;
+  folders: Map<string, FolderNode>;
+  sheets: { entry: RepositoryEntry; leaf: string }[];
+  /** Everything below this folder, so a collapsed one still says how much it holds. */
+  count: number;
 }
 
-function EntryCard({
+function emptyFolder(name: string, path: string): FolderNode {
+  return { name, path, folders: new Map(), sheets: [], count: 0 };
+}
+
+function buildTree(entries: RepositoryEntry[]): FolderNode {
+  const root = emptyFolder('', '');
+  for (const entry of entries) {
+    const { folders, leaf } = pathOf(entry);
+    let node = root;
+    node.count += 1;
+    let path = '';
+    for (const folder of folders) {
+      path = path === '' ? folder : `${path} / ${folder}`;
+      let child = node.folders.get(folder);
+      if (!child) {
+        child = emptyFolder(folder, path);
+        node.folders.set(folder, child);
+      }
+      child.count += 1;
+      node = child;
+    }
+    node.sheets.push({ entry, leaf });
+  }
+  return root;
+}
+
+/** Every folder path in the tree, for expanding the lot while a search is on. */
+function allPaths(node: FolderNode, into: Set<string> = new Set()): Set<string> {
+  for (const child of node.folders.values()) {
+    into.add(child.path);
+    allPaths(child, into);
+  }
+  return into;
+}
+
+function SheetRow({
   entry,
+  leaf,
   selected,
   onSelect,
 }: {
   entry: RepositoryEntry;
+  leaf: string;
   selected: boolean;
   onSelect: () => void;
 }): JSX.Element {
-  const trail = trailOf(entry.name, entry.group);
   return (
     <li className={selected ? 'repo-entry selected' : 'repo-entry'}>
       <button type="button" className="repo-open" onClick={onSelect}>
         <span className="repo-title">
-          <strong>{leafOf(entry.name, entry.group)}</strong>
-          {trail ? <span className="repo-trail">{trail}</span> : null}
+          <span className="repo-icon" aria-hidden="true" />
+          <strong>{leaf}</strong>
           {entry.direction === 'export' ? <span className="badge">export</span> : null}
           {entry.shelf === 'saved' && entry.verified ? (
             <span className="badge badge-declared">imported cleanly</span>
@@ -97,49 +145,115 @@ function EntryCard({
   );
 }
 
-/**
- * One shelf, its entries under their folder. The headings are the folders the
- * scripts actually live in, so somebody looking for the click-and-collect
- * sheets can find them by the name they already use for that work.
- */
-function Shelf({
+function Folder({
+  node,
+  depth,
+  open,
+  onToggle,
+  selectedId,
+  onSelect,
+}: {
+  node: FolderNode;
+  depth: number;
+  open: Set<string>;
+  onToggle: (path: string) => void;
+  selectedId: string | undefined;
+  onSelect: (entry: RepositoryEntry) => void;
+}): JSX.Element {
+  const isOpen = open.has(node.path);
+  return (
+    <li className="repo-folder">
+      <button
+        type="button"
+        className={isOpen ? 'repo-folder-head open' : 'repo-folder-head'}
+        style={{ paddingLeft: 8 + depth * 14 }}
+        onClick={() => onToggle(node.path)}
+        aria-expanded={isOpen}
+      >
+        <span className="repo-caret" aria-hidden="true">
+          {isOpen ? '▾' : '▸'}
+        </span>
+        <span className="repo-folder-name">{node.name}</span>
+        <span className="repo-folder-count">{node.count}</span>
+      </button>
+
+      {isOpen ? (
+        <ul className="repo-children" style={{ paddingLeft: depth === 0 ? 0 : 0 }}>
+          {[...node.folders.values()].map((child) => (
+            <Folder
+              key={child.path}
+              node={child}
+              depth={depth + 1}
+              open={open}
+              onToggle={onToggle}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
+          ))}
+          {node.sheets.length > 0 ? (
+            <li>
+              <ul className="repo-list" style={{ paddingLeft: 8 + (depth + 1) * 14 }}>
+                {node.sheets.map(({ entry, leaf }) => (
+                  <SheetRow
+                    key={entry.id}
+                    entry={entry}
+                    leaf={leaf}
+                    selected={selectedId === entry.id}
+                    onSelect={() => onSelect(entry)}
+                  />
+                ))}
+              </ul>
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
+function Tree({
   entries,
+  open,
+  onToggle,
   selectedId,
   onSelect,
 }: {
   entries: RepositoryEntry[];
+  open: Set<string>;
+  onToggle: (path: string) => void;
   selectedId: string | undefined;
   onSelect: (entry: RepositoryEntry) => void;
 }): JSX.Element {
-  const folders = new Map<string, RepositoryEntry[]>();
-  for (const entry of entries) {
-    const key = entry.group || 'Other';
-    const existing = folders.get(key);
-    if (existing) existing.push(entry);
-    else folders.set(key, [entry]);
-  }
-
+  const root = useMemo(() => buildTree(entries), [entries]);
   return (
-    <>
-      {[...folders].map(([folder, inFolder]) => (
-        <div className="repo-folder" key={folder}>
-          <h3 className="repo-folder-head">
-            {folder}
-            <span className="repo-folder-count">{inFolder.length}</span>
-          </h3>
+    <ul className="repo-tree">
+      {[...root.folders.values()].map((folder) => (
+        <Folder
+          key={folder.path}
+          node={folder}
+          depth={0}
+          open={open}
+          onToggle={onToggle}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
+      ))}
+      {root.sheets.length > 0 ? (
+        <li>
           <ul className="repo-list">
-            {inFolder.map((entry) => (
-              <EntryCard
+            {root.sheets.map(({ entry, leaf }) => (
+              <SheetRow
                 key={entry.id}
                 entry={entry}
+                leaf={leaf}
                 selected={selectedId === entry.id}
                 onSelect={() => onSelect(entry)}
               />
             ))}
           </ul>
-        </div>
-      ))}
-    </>
+        </li>
+      ) : null}
+    </ul>
   );
 }
 
@@ -152,6 +266,7 @@ export function RepositoryPanel({ itemTypes, isAdmin, onOpen }: Props): JSX.Elem
   const [totals, setTotals] = useState({ supplied: 0, saved: 0 });
   const [selected, setSelected] = useState<RepositoryDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState<Set<string>>(new Set());
   const scroller = useRef<HTMLDivElement>(null);
 
   function reload(): void {
@@ -176,6 +291,28 @@ export function RepositoryPanel({ itemTypes, isAdmin, onOpen }: Props): JSX.Elem
   // Only the types that actually have sheets are worth offering as filters.
   const filterTypes = useMemo(() => itemTypes.slice(0, 8), [itemTypes]);
 
+  const filtered = search.trim() !== '' || itemType !== '' || direction !== '';
+
+  /*
+   * Closed to start with, so the page opens on six folders rather than 109
+   * sheets, and a search opens everything - a match three folders down is no
+   * use behind a closed door. Which folders somebody opened by hand is kept
+   * while they search and put back afterwards.
+   */
+  const byHand = useRef<Set<string>>(new Set());
+  const expanded = useMemo(() => {
+    if (!filtered) return byHand.current;
+    return allPaths(buildTree([...saved, ...supplied]));
+  }, [filtered, saved, supplied, open]);
+
+  function toggle(path: string): void {
+    const next = new Set(expanded);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
+    if (!filtered) byHand.current = next;
+    setOpen(next);
+  }
+
   function select(entry: RepositoryEntry): void {
     fetchRepositoryEntry(entry.id)
       .then(setSelected)
@@ -192,8 +329,6 @@ export function RepositoryPanel({ itemTypes, isAdmin, onOpen }: Props): JSX.Elem
       setError((err as Error).message);
     }
   }
-
-  const filtered = search.trim() !== '' || itemType !== '' || direction !== '';
 
   return (
     <>
@@ -263,7 +398,13 @@ export function RepositoryPanel({ itemTypes, isAdmin, onOpen }: Props): JSX.Elem
                 : 'None of the saved sheets match that.'}
             </p>
           ) : (
-            <Shelf entries={saved} selectedId={selected?.entry.id} onSelect={select} />
+            <Tree
+              entries={saved}
+              open={expanded}
+              onToggle={toggle}
+              selectedId={selected?.entry.id}
+              onSelect={select}
+            />
           )}
 
           <div className="repo-shelf">
@@ -275,7 +416,13 @@ export function RepositoryPanel({ itemTypes, isAdmin, onOpen }: Props): JSX.Elem
           {supplied.length === 0 ? (
             <p className="repo-empty">Nothing here matches that.</p>
           ) : (
-            <Shelf entries={supplied} selectedId={selected?.entry.id} onSelect={select} />
+            <Tree
+              entries={supplied}
+              open={expanded}
+              onToggle={toggle}
+              selectedId={selected?.entry.id}
+              onSelect={select}
+            />
           )}
           </div>
         </section>

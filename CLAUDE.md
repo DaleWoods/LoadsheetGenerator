@@ -4,6 +4,26 @@ WOSG Load Sheet Generator. Node + TypeScript, one deployment. Built to
 `docs/loadsheet-generator-spec.md`, seeded from the load sheet export described
 in `docs/load-sheet-template-library.md`.
 
+## Keep the two documents current, in the same commit
+
+`README.md` and this file are the only description of the app anyone reads.
+**A change that alters what the app does, or how somebody works on it, updates
+them in the same commit** - not afterwards. A document that lags is worse than
+none: it becomes a list of things that used to be true, and people stop
+believing the parts that are still right.
+
+- `README.md` is for somebody using or picking up the app: what it does, how
+  it is arranged, how to run and deploy it.
+- `CLAUDE.md` (this file) is for somebody changing it: the rules that are not
+  obvious from the code and the mistakes already made once.
+- `docs/decisions.md` is the running record of deliberate departures and why.
+  Every non-obvious choice goes here, with the reasoning that would otherwise
+  have to be rediscovered.
+
+Do not describe a number, a label or a list that the code derives - name the
+behaviour instead. "The folder each script lives in becomes a folder in the
+tree" survives a reorganisation; "the six folders" does not.
+
 ## Things that will bite you
 
 - **`columnsOffset` is copied, never computed.** A CSV with the leading
@@ -93,5 +113,7 @@ in `docs/load-sheet-template-library.md`.
 
 - `npm run build`
 - `npx vitest run`
+- `README.md`, `CLAUDE.md` and `docs/decisions.md` updated if the change
+  touched what they describe.
 - For anything a user touches, actually drive it. "Typechecks" is not "works".
 - Report what you verified and what you did not.

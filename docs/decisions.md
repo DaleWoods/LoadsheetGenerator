@@ -185,3 +185,39 @@ site uid, only that the request asked for Goldsmiths. That is the same bargain
 the unverified attributes strike — generate it, show it, mark it — and it is
 better than a blank column, which hides the same guess inside somebody's head
 instead.
+
+## The repository is a folder tree, not a list
+
+Grouping 109 sheets by their top folder still left one group of 89, and the
+answer to "where is the click-and-collect sheet" was still a scroll. Each shelf
+is now the tree the scripts are actually kept in, built by splitting the
+record's name on ` / ` — the name *is* the path in the loadsheets folder, so no
+new information was needed to draw it. Folders start closed, so the page opens
+on six rows rather than 109, and each carries a count of everything beneath it.
+A search opens them all and closes them again afterwards, keeping whatever the
+reader had opened by hand: a match three folders down is no use behind a closed
+door.
+
+## The worked examples have to name real fields
+
+The describe box shipped offering "Set the isEditorsPick flag to true on
+Product by SKU". No such attribute exists — not in the library, not in SAP
+Commerce — so the app's one worked example of its headline feature was a
+request it would itself have flagged as unverified and made the user tick a
+box to clear. `describeBox.test.ts` now checks every attribute named in an
+example against the catalogue.
+
+## What WOSG's FlexibleSearch queries do and do not settle
+
+`docs/wosg-flexisearch-queries.md` is the team's own backoffice query library.
+It is worth having — real syntax, real joins, real attribute names, the enum
+PKs written down — but it does **not** close the export gap. Those queries are
+written to be read in the Admin console: they `SELECT` display columns, where
+an export's `exportItemsFlexibleSearch` needs the PK of the items to export,
+and none of them carries the `setTargetFile` or `exportItems` lines that wrap
+one. So `export.mechanicsUnverified` stays until a real export *script* is to
+hand.
+
+Two things it does corroborate, both already in the generator: the catalog
+restriction naming `masterProductCatalog` and `Staged` as values, and the
+`LIKE '17%'` code-prefix pattern behind the SKU wildcard export.

@@ -823,36 +823,84 @@ table.sheet td:last-child {
   border-bottom: 1px solid var(--line);
 }
 
-/* The folder a script lives in is the name its team already calls that work. */
-.repo-folder-head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
+/*
+ * The tree. Laid out like the loadsheets folder itself, because that is the
+ * arrangement the team already navigates: a closed folder with a count says
+ * more than fifty rows of its contents.
+ */
+.repo-tree,
+.repo-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.repo-folder {
+  list-style: none;
+}
+button.repo-folder-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 8px;
-  padding: 8px 0 6px;
-  background: var(--surface);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-weight: 550;
+  font-size: 13px;
+  text-align: left;
+  white-space: normal;
+}
+button.repo-folder-head:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: transparent;
+  color: var(--ink);
+}
+.repo-caret {
   color: var(--muted);
+  font-size: 10px;
+  width: 10px;
+  flex: none;
+}
+.repo-folder-name {
+  flex: 1;
+}
+.repo-folder-name::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 11px;
+  margin-right: 7px;
+  vertical-align: -1px;
+  border-radius: 1px 2px 2px 2px;
+  background: var(--brass);
+  opacity: 0.55;
+}
+button.repo-folder-head.open .repo-folder-name::before {
+  opacity: 0.8;
 }
 .repo-folder-count {
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 0;
   color: var(--muted);
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 0 7px;
+  flex: none;
 }
-.repo-folder + .repo-folder {
-  margin-top: 16px;
+/* A sheet is a leaf, marked as a file so it does not read as another folder. */
+.repo-icon {
+  display: inline-block;
+  width: 9px;
+  height: 12px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 1px;
+  background: var(--surface);
 }
+
 .repo-shelf {
   display: flex;
   align-items: baseline;
@@ -872,10 +920,10 @@ table.sheet td:last-child {
 
 .repo-list {
   list-style: none;
-  margin: 0;
+  margin: 3px 0 6px;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 .repo-entry {
   border: 1px solid var(--line);
@@ -919,7 +967,7 @@ button.repo-open:hover:not(:disabled) {
 }
 .repo-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 2px;

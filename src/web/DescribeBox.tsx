@@ -16,10 +16,26 @@ interface Props {
   enabled: boolean;
 }
 
-const EXAMPLES = [
-  'Set the isEditorsPick flag to true on Product by SKU',
-  'Load meta description and meta keywords for a list of products',
-  'Add products to the see more styles list without replacing what is there',
+/**
+ * Every example has to name a field the library actually has.
+ * `describeBox.test.ts` checks that against the catalogue, because the first
+ * one shipped naming `isEditorsPick`, which exists nowhere in SAP Commerce or
+ * in the library - so the one worked example of the app's headline feature was
+ * a request it would have flagged as unverified.
+ */
+export const EXAMPLES: { text: string; attributes: string[] }[] = [
+  {
+    text: 'Add Goldsmiths to display on site for 10 SKUs',
+    attributes: ['syncToSite'],
+  },
+  {
+    text: 'Load meta description and meta keywords for a list of products',
+    attributes: ['metaDescription', 'metaKeywords'],
+  },
+  {
+    text: 'Add products to the see more styles list without replacing what is there',
+    attributes: ['seeMoreStylesRef'],
+  },
 ];
 
 export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
@@ -59,7 +75,7 @@ export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
         className="paste"
         value={description}
         onChange={(event) => setDescription(event.target.value)}
-        placeholder={`What do you need?  For example:\n\n· ${EXAMPLES[0]}\n· ${EXAMPLES[1]}\n· ${EXAMPLES[2]}`}
+        placeholder={`What do you need?  For example:\n\n${EXAMPLES.map((example) => `· ${example.text}`).join('\n')}`}
         aria-label="Describe the load sheet"
       />
       <div className="describe-actions">

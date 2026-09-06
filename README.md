@@ -30,6 +30,11 @@ src/server/
   integrations/  the model that turns a description into a specification
 src/web/         signing in, the field picker (Mode B), the describe box (Mode A),
                  export selection, the repository, history, accounts
+docs/
+  loadsheet-generator-spec.md        what was asked for
+  load-sheet-template-library.md     the house conventions, written up
+  wosg-flexisearch-queries.md        WOSG's own backoffice queries, for reference
+  decisions.md                       every deliberate departure, and why
 ```
 
 ## The shape of it
@@ -50,12 +55,17 @@ fly; the app never hands back a stored file.
 
 ## The repository
 
-One store, two shelves. **From the production export** is the 109 scripts WOSG
-had already run - the extraction captured each one's header line, CSV
+One store, two shelves. **Already run against production** is the scripts WOSG
+had before this app - the extraction captured each one's header line, CSV
 parameters and the CSV's heading row, but never the file, so those entries
-describe rather than reopen. **Made in the app** is what has been saved since:
-those carry the request that made them, so they open straight back into the
-picker and download again.
+describe rather than reopen. **Made here** is what has been saved since: those
+carry the request that made them, so they open straight back into the picker
+and download again.
+
+Each shelf is a folder tree, built from the path in the record's name, so it
+mirrors the loadsheets folder the scripts are kept in. Folders start closed and
+carry a count; a search opens them all, because a match several folders down is
+no use behind a closed door.
 
 Saving puts a sheet on the shelf. Saying it *imported cleanly* additionally
 makes it evidence: only then does it join the catalogue, and only then does an
@@ -92,6 +102,12 @@ administrator username and password, which are the only two values you must
 set. Without `DB_DRIVER=postgres` the app falls back to SQLite on the local
 disk, which Render wipes on every deploy - the library re-seeds itself, but
 anything added since is gone.
+
+## Keeping the documents current
+
+`README.md`, `CLAUDE.md` and `docs/decisions.md` are updated in the same commit
+as the change they describe, never afterwards. See the top of `CLAUDE.md` for
+which belongs where.
 
 ## Before you say it works
 
