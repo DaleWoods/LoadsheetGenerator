@@ -420,6 +420,137 @@ then a three or four digit store number, then the order's digits — so it does
 collects" answerable as "the code does not begin with S", which is exactly what
 the first real query asked for and the app could not have known.
 
+## How an order says it is a click and collect
+
+Asked where an order declares itself, the query library gave two candidates and
+settled neither: `{o:deliveryType}`, which their own note calls an enum
+(*"'Sales Application' and 'Delivery Type' are enum types so they need
+EnumerationValue"*), and `{o:deliveryMode}`, LEFT JOINed to `DeliveryMode` in
+another query. What no query recorded was which **value** meant what — one
+matches `{O:deliveryType} = "8796122218587"` with no note of what that is.
+
+Rather than guess, the app carried the fields with empty values and a query
+that would settle it, and refused to write a condition on either meanwhile: a
+condition on a guessed enum returns a *plausible number of wrong rows*, which
+is worse than the fallback. Dale ran it; `deliveryType` has exactly two values,
+`ClickAndCollect` and `Delivery`.
+
+So that is the filter now, and it is a better one than what it replaces: it is
+what the system sets rather than a naming convention that happens to hold. It
+is read through `EnumerationValue` and compared on `{ev:code}`, never on the
+PK, which is the same rule that stopped the guess in the first place.
+
+The order-code shape stays recorded, demoted to what it is: a click-and-collect
+order is numbered from the store it is collected at, so it does not carry its
+site's prefix. Useful when reading an order number off a screen; not how to
+filter for one. `deliveryMode` stays unestablished rather than being filled in
+to match, because nothing has established it.
+
+The round trip is the point. The app was able to say precisely what it did not
+know, hand over the one query that would answer it, and take the answer without
+anything in between having been invented.
+
+## The Queries tab writes FlexibleSearch, and is checked more lightly on purpose
+
+Same architecture as the load sheet side, one deliberate difference.
+
+The architecture: the model returns a **specification** — types, aliases,
+fields, joins, conditions, ordering — and never query text. There is no field
+in its schema that holds SQL. Names are checked against a catalogue parsed from
+`docs/wosg-flexisearch-queries.md`, and only then does `formatFlexQuery` write
+the query. A hallucinated field reaches the screen with a warning beside it
+rather than reaching the console unremarked.
+
+The difference: **a query only reads.** A wrong load sheet writes wrong data to
+production; a wrong query costs an error message. So an unknown field is a
+warning and the query still appears, where an unverified attribute on a load
+sheet holds the download until somebody ticks a box. What is not acceptable is
+a query appearing with nothing said — one that runs and returns plausible but
+wrong rows is how a bad decision gets made, and how a bad load sheet gets built
+from its output.
+
+Three checks are firmer than the rest:
+
+- **An export query selects one column, the PK.** Selecting display columns
+  instead is exactly the mistake that made a generated export run and write
+  nothing, so it is an error rather than a warning.
+- **An alias used but never declared** is a join the model forgot; the query
+  would not parse.
+- **A PK in a condition** is warned about. Their console queries are full of
+  them, which is fine for something typed once; a query somebody keeps and runs
+  in another environment silently returns nothing.
+
+The shape of the specification was measured, not designed. Across their 82
+queries: 43 select with labels, 32 join, 32 have a WHERE, 11 order, 10 are
+DISTINCT — all covered. Subselects (5), CASE (7), GROUP BY (2) and UNION (1)
+are the tail, and a request needing one gets a question back rather than a
+query that half does it.
+
+Parsing their library taught two things worth keeping. Aliases must resolve
+inside the query that declares them — resolved across the file, `{o:code}`
+landed on PriceRow because another query aliased something else to `o`, and a
+catalogue built that way calls good fields unknown and bad ones fine. And their
+queries have blank lines *inside* them, so splitting the markdown on blank
+lines gave 82 fragments that each began with SELECT and carried no FROM.
+
+## Three things the first Queries deployment got wrong
+
+**The tab was unreadable once tapped.** `button.tab:hover` is specificity
+0-1-1 and the primary `button:hover:not(:disabled)` is 0-2-1, so hovering a tab
+filled it navy and left the navy text on it. On a phone a tap leaves the
+element hovered, so the tab somebody is on stayed unreadable rather than
+flickering. The same specificity trap had already been fixed on the repository
+card and I fixed that one in place rather than looking for its siblings; it is
+in `CLAUDE.md` now.
+
+**The tabs could not all be reached on a phone.** The top bar does not wrap and
+the page scrolls vertically, so a fifth tab put Accounts past the edge with no
+way to get to it. The nav scrolls sideways now, and under 640px the bar tightens
+and the brand name gives up its space.
+
+**The request died as "failed to fetch".** Two changes, because the cause could
+not be established from the browser: `max_tokens` came down from 8000 to 3000,
+since a query specification is a few hundred tokens and the ceiling was minutes
+of possible generation on a request somebody is watching; and the route now logs
+its timing and its errors, so the next failure leaves an account of itself in
+the Render log. The client gives up at two minutes with a sentence saying so
+rather than the browser's bare TypeError.
+
+Also fixed while looking: `flexLibrary()` read its source from `docs/` through a
+path that reaches outside `dist/`. That works locally and is a file-not-found on
+a deployment - exactly what `copy-assets.mjs` exists to prevent, and it now
+copies the query library beside the code that reads it.
+
+## The sites are knowledge the app had to be told
+
+Nothing about which fascias exist, what their order numbers look like, or how a
+click-and-collect order differs from a direct one is derivable from the load
+sheets or the query library. The app was inferring it. `Goldsmiths_UK` went
+into a Display On Site sheet because the model spelled it from the word
+"Goldsmiths" — right, and unverifiable. `src/shared/sites.ts` holds it now,
+with the uids taken exactly off the Website list in backoffice, and both
+prompts carry it: the query writer and the load sheet drafter.
+
+It is a typed module rather than a parsed document. The query library is parsed
+because it is 82 queries that would be miserable to retype; this is eleven rows
+that want to be exact, and a hand-written markdown table would be one
+mis-aligned pipe away from putting orders in the wrong fascia.
+
+**The gaps stay gaps until they are filled by somebody who knows.** Hallmark's
+prefix (`gbc`) and Betteridge's (`usb`, the `ubc` was a slip) came back within
+the hour, so every transactional site now has one and the test asserts that.
+What is still absent is absent on purpose: the Rolex boutiques take no orders
+at all, so they have no prefix to know, and the prompt says "takes no orders"
+rather than "prefix not known" — an order query should leave them out rather
+than include them and return nothing.
+
+The click-and-collect rule is the one that earns its place immediately: a
+click-and-collect order is numbered from the store it is collected at — `S`,
+then a three or four digit store number, then the order's digits — so it does
+*not* carry its site's prefix. That makes "direct orders only, no click and
+collects" answerable as "the code does not begin with S", which is exactly what
+the first real query asked for and the app could not have known.
+
 ## The field that marks a click and collect has not been found, only narrowed
 
 Asked where an order declares itself direct or click-and-collect, the query

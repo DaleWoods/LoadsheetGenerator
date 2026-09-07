@@ -67,38 +67,47 @@ export const SITES: Site[] = [
 export const CLICK_AND_COLLECT_PREFIX = 'S';
 
 /**
- * The two fields on an Order that say how it is being fulfilled, both of them
- * in WOSG's own queries.
+ * How an order says whether it is a click and collect or a direct delivery.
  *
- * `deliveryType` is an enum - their query library says so in as many words
- * ("'Sales Application' and 'Delivery Type' are enum types so they need
- * EnumerationValue") and joins it that way. `deliveryMode` is the standard
- * Commerce one, LEFT JOINed to DeliveryMode in another of their queries.
+ * `{o:deliveryType}` is an enum with exactly two values, confirmed by running
+ * `deliveryTypeProbe()` against production: `ClickAndCollect` and `Delivery`.
+ * That is the field to use - it is what the system sets, rather than a naming
+ * convention that happens to hold.
  *
- * What neither the library nor anybody has recorded is which *value* of either
- * means click and collect. Until one is, the order-code prefix is the rule
- * that is known to work, and a query written on a guessed enum value would
- * return a plausible number of wrong rows. `values` fills in when somebody
- * runs the query in `deliveryTypeProbe()`.
+ * It is an enum, so it is read through EnumerationValue and compared on
+ * `{ev:code}`. Never on the PK: their own queries match `{O:deliveryType} =
+ * "8796122218587"` with no note of what that is, and a PK is a different row
+ * in every environment.
+ *
+ * `{o:deliveryMode}` is the standard Commerce field, LEFT JOINed to
+ * DeliveryMode in one of their queries. Its values have not been established
+ * and it is not needed now that deliveryType is known.
  */
+export const DELIVERY_TYPES = {
+  clickAndCollect: 'ClickAndCollect',
+  delivery: 'Delivery',
+} as const;
+
+export const DELIVERY_TYPE_JOIN = 'JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}';
+
 export const FULFILMENT_FIELDS = {
   deliveryType: {
     field: 'deliveryType',
-    join: 'JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}',
-    note: 'An enum; join EnumerationValue to read {ev:code}.',
-    values: [] as string[],
+    join: DELIVERY_TYPE_JOIN,
+    note: 'An enum with two values; join EnumerationValue and compare {ev:code}.',
+    values: [DELIVERY_TYPES.clickAndCollect, DELIVERY_TYPES.delivery] as string[],
   },
   deliveryMode: {
     field: 'deliveryMode',
     join: 'LEFT JOIN DeliveryMode AS dm ON {o:deliveryMode} = {dm:pk}',
-    note: 'The standard Commerce delivery mode. LEFT JOINed in their query, so it can be null.',
+    note: 'The standard Commerce delivery mode. Values not established; deliveryType answers this instead.',
     values: [] as string[],
   },
 } as const;
 
-/** The query that would settle which delivery types exist, for somebody to run. */
+/** The query that established the delivery types, kept so it can be re-run. */
 export function deliveryTypeProbe(): string {
-  return "SELECT DISTINCT {ev:code} 'Delivery Type' FROM {Order AS o JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}}";
+  return `SELECT DISTINCT {ev:code} 'Delivery Type' FROM {Order AS o ${DELIVERY_TYPE_JOIN}}`;
 }
 
 export function sitesIn(region: Region): Site[] {
@@ -138,9 +147,13 @@ export function sitesForPrompt(): string {
     '',
     'An order placed on a site is numbered with that site\'s three-character prefix.',
     `A click-and-collect order is numbered instead from the store it is collected at: ${CLICK_AND_COLLECT_PREFIX} then a three or four digit store number, then the order's digits (S046814270 is a Goldsmiths click-and-collect order).`,
-    'So a direct order is one whose code does not begin with S, and a click-and-collect order is one that does - in both regions. This is the rule to use: it is known to hold.',
+    'So a click-and-collect order does not carry its site prefix. That is a useful thing to know when reading an order number, but it is not how to filter for one.',
     '',
-    'Order also carries deliveryType (an enum - join EnumerationValue to read {ev:code}) and deliveryMode (join DeliveryMode). One of them almost certainly marks click and collect directly, but which value means it has not been established, so do not write a condition on either. If a request turns on it, say that the order-code rule is being used instead and that the enum values would settle it.',
+    'CLICK AND COLLECT versus DIRECT',
+    '',
+    `Order.deliveryType says which, and it has exactly two values: ${DELIVERY_TYPES.clickAndCollect} and ${DELIVERY_TYPES.delivery}. Use this rather than the order code - it is what the system sets.`,
+    `It is an enum, so join it: ${DELIVERY_TYPE_JOIN}, then compare {ev:code} to '${DELIVERY_TYPES.clickAndCollect}' or '${DELIVERY_TYPES.delivery}'. Never match deliveryType against a PK.`,
+    `"Direct orders only, no click and collects" is {ev:code} = '${DELIVERY_TYPES.delivery}'.`,
     '',
     'The Rolex boutique sites take no orders at all; leave them out of an order query rather than including them and returning nothing.',
     'Where a prefix is not listed above, say so rather than assuming one.',

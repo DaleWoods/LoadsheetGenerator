@@ -6,6 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   CLICK_AND_COLLECT_PREFIX,
+  DELIVERY_TYPES,
+  DELIVERY_TYPE_JOIN,
   FULFILMENT_FIELDS,
   SITES,
   deliveryTypeProbe,
@@ -63,14 +65,26 @@ describe('the sites and what their order numbers look like', () => {
     expect(SITES.filter((s) => s.transactional).every((s) => s.orderPrefix !== undefined)).toBe(true);
   });
 
-  it('has not guessed which delivery type means click and collect', () => {
-    // Both fields are in their own queries; neither library nor anybody has
-    // said what the values are, and a condition on a guessed enum returns a
-    // plausible number of wrong rows.
-    expect(FULFILMENT_FIELDS.deliveryType.values).toEqual([]);
+  it('knows the two delivery types, run against production rather than guessed', () => {
+    expect(FULFILMENT_FIELDS.deliveryType.values).toEqual(['ClickAndCollect', 'Delivery']);
+    expect(DELIVERY_TYPES.clickAndCollect).toBe('ClickAndCollect');
+    expect(DELIVERY_TYPES.delivery).toBe('Delivery');
+    // deliveryMode is still unestablished, and stays that way rather than
+    // being filled in to match.
     expect(FULFILMENT_FIELDS.deliveryMode.values).toEqual([]);
-    expect(deliveryTypeProbe()).toContain('JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}');
-    expect(sitesForPrompt()).toContain('do not write a condition on either');
+  });
+
+  it('reads the delivery type through EnumerationValue, never off a PK', () => {
+    // Their own query matches {O:deliveryType} = "8796122218587" with no note
+    // of what that is. A PK is a different row in every environment.
+    expect(DELIVERY_TYPE_JOIN).toBe('JOIN EnumerationValue AS ev ON {o:deliveryType} = {ev:pk}');
+    expect(deliveryTypeProbe()).toContain(DELIVERY_TYPE_JOIN);
+
+    const prompt = sitesForPrompt();
+    expect(prompt).toContain("Never match deliveryType against a PK");
+    expect(prompt).toContain("\"Direct orders only, no click and collects\" is {ev:code} = 'Delivery'");
+    // And the order-code rule is demoted to a reading aid, not a filter.
+    expect(prompt).toContain('it is not how to filter for one');
   });
 
   it('gives every prefix to exactly one site', () => {
@@ -78,11 +92,11 @@ describe('the sites and what their order numbers look like', () => {
     expect(new Set(prefixes).size).toBe(prefixes.length);
   });
 
-  it('says how a click and collect is told from a direct order', () => {
+  it('keeps the order-code shape as a reading aid', () => {
     expect(CLICK_AND_COLLECT_PREFIX).toBe('S');
     const prompt = sitesForPrompt();
     expect(prompt).toContain('S046814270');
-    expect(prompt).toContain('does not begin with S');
+    expect(prompt).toContain('does not carry its site prefix');
     // And it must not offer a prefix nobody gave it.
     expect(prompt).toContain('Where a prefix is not listed above, say so');
   });
