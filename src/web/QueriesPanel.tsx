@@ -13,7 +13,7 @@
  * on Order holds the store and how OrderEntry joins to it.
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { describeFlexQuery, type FlexFinding, type FlexResult } from './api.js';
 
 const SEVERITY_LABEL: Record<FlexFinding['severity'], string> = {
@@ -32,8 +32,19 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
   const [description, setDescription] = useState('');
   const [result, setResult] = useState<FlexResult | null>(null);
   const [working, setWorking] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+
+  // It can take the better part of a minute, and a button that says "working"
+  // for that long with nothing moving reads as a hang.
+  useEffect(() => {
+    if (!working) return undefined;
+    setElapsed(0);
+    const timer = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
+    return () => clearInterval(timer);
+  }, [working]);
 
   async function run(): Promise<void> {
     if (description.trim().length < 3) return;
@@ -60,7 +71,7 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
         </p>
       </div>
 
-      <div className="columns columns-even">
+      <div className="columns query-columns">
         <section className="card">
           <h2 className="step" style={{ marginTop: 0 }}>
             What do you need?
@@ -73,21 +84,49 @@ export function QueriesPanel({ enabled }: { enabled: boolean }): JSX.Element {
           ) : (
             <>
               <textarea
+                ref={box}
                 className="paste"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder={`For example:\n\n${EXAMPLES.map((e) => `· ${e}`).join('\n')}`}
+                onKeyDown={(event) => {
+                  // The shortcut anybody types in a box like this.
+                  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void run();
+                }}
+                placeholder="All orders from the last week with the order number and date"
                 aria-label="Describe the query"
               />
+
               <div className="describe-actions">
                 <button type="button" onClick={() => void run()} disabled={working || description.trim().length < 3}>
-                  {working ? 'Working it out…' : 'Write the query'}
+                  {working ? `Working it out… ${elapsed}s` : 'Write the query'}
                 </button>
                 <span className="muted">
-                  Reads only — nothing here changes anything. It can take up to a minute.
+                  {working ? 'Up to a minute.' : 'Reads only — nothing here changes anything.'}
                 </span>
               </div>
               {error ? <p className="error">{error}</p> : null}
+
+              {/*
+                * Clickable, not just a placeholder. Examples in a placeholder
+                * vanish the moment somebody types, which is exactly when they
+                * would be useful, and they cannot be borrowed and edited.
+                */}
+              <div className="examples">
+                <p className="muted">Or start from one of these:</p>
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    className="chip"
+                    onClick={() => {
+                      setDescription(example);
+                      box.current?.focus();
+                    }}
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
             </>
           )}
         </section>

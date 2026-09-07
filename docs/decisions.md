@@ -605,3 +605,23 @@ list next to the regioned ones and nobody has said which is current, so they
 carry that sentence rather than a guess. And the list was read from a scrolling
 table, so the prompt is told that a version it cannot see may still exist —
 absence of evidence, said out loud.
+
+## Polish, for the people who are in it every day
+
+Asked who "presentable" is for, the answer was the team who use it rather than
+anyone being shown it. So no landing screen and no demo story — the effort goes
+where the clicks are.
+
+On the query tab, three things were costing time:
+
+- **The examples were only in the placeholder.** They vanished the moment
+  somebody typed, which is exactly when they are useful, and they could not be
+  borrowed and edited. They are chips now: click one and it fills the box and
+  focuses it.
+- **Ctrl/Cmd+Enter runs it.** The shortcut anybody types in a box like that.
+- **The button said "Working it out…" for the better part of a minute with
+  nothing moving**, which reads as a hang. It counts seconds.
+
+And the layout split the width evenly between one text box and a query with its
+findings, which left the answer in half a screen and the other half empty. The
+result column is the wider one.

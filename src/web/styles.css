@@ -1265,3 +1265,43 @@ ul.facts code {
     padding: 16px 12px 40px;
   }
 }
+
+/* ------------------------------------------------------------- queries - */
+
+/*
+ * The asking is one box; the answer is a query, its findings and what it does
+ * in words. Splitting the width evenly gave the answer half a screen and left
+ * the other half empty, so the result column is the wider one.
+ */
+.query-columns {
+  grid-template-columns: minmax(320px, 4fr) minmax(420px, 6fr);
+}
+@media (max-width: 1040px) {
+  .query-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.examples {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.examples > .muted {
+  flex: 1 0 100%;
+  margin: 0 0 2px;
+  font-size: 12.5px;
+}
+/* Left-aligned and wrapping, because these are sentences rather than labels. */
+.examples button.chip {
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.query-out pre.file {
+  margin-top: 0;
+}
