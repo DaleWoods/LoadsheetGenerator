@@ -625,3 +625,37 @@ On the query tab, three things were costing time:
 And the layout split the width evenly between one text box and a query with its
 findings, which left the answer in half a screen and the other half empty. The
 result column is the wider one.
+
+## The audit log is separate from the history, and says who
+
+`generation` already records what was built, so it can be built again. The
+audit log answers the other question — who did what, and when. When something
+is wrong with production data the first thing anybody wants is which sheet and
+whose, and a working record is not that.
+
+Three things shape it:
+
+**Recording never breaks the thing it records.** A failed audit write is logged
+and swallowed, and `record` is called without being awaited. It is the one
+place in this codebase where an error is deliberately dropped: a row is worth
+having, and it is not worth somebody losing a download over. A test asserts
+that a broken database still lets the action through.
+
+**Every action gets its own shape on screen.** A download shows the file, the
+item type, the fields and the row count; a refused sign-in shows why; a written
+query shows what was asked and the SQL that came back. Rendering them all as one
+row of JSON would mean reading none of them — the point of a log anybody
+actually looks at is that the unusual thing catches the eye, which is also why
+the only colour on a row is its left rule.
+
+**The summary is written when it happens, not derived on the screen.** An event
+from six months ago reads the way it did then. A screen that re-words old
+events quietly rewrites history, and the detail JSON is already versioned by
+being whatever was there — the panel renders what it finds and copes when a
+field it expects is missing.
+
+Admin-only is enforced on the route, not by hiding the tab, and tested both
+ways: a member gets 403 and somebody with no session gets 401. The refusal
+reason recorded for a bad sign-in is `unknown` for both a wrong username and a
+wrong password, because that is what the person at the screen was told — the
+log does not know more than they do, and the password never goes near it.

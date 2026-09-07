@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { App } from './App.js';
 import { AccountsPanel } from './AccountsPanel.js';
+import { AuditPanel } from './AuditPanel.js';
 import { HistoryPanel } from './HistoryPanel.js';
 import { QueriesPanel } from './QueriesPanel.js';
 import { RepositoryPanel } from './RepositoryPanel.js';
@@ -24,7 +25,7 @@ import {
   type SheetRequest,
 } from './api.js';
 
-type View = 'generator' | 'queries' | 'repository' | 'history' | 'accounts';
+type View = 'generator' | 'queries' | 'repository' | 'history' | 'accounts' | 'audit';
 
 export function Shell(): JSX.Element {
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -92,13 +93,22 @@ export function Shell(): JSX.Element {
             History
           </button>
           {user.role === 'admin' ? (
-            <button
-              type="button"
-              className={view === 'accounts' ? 'tab current' : 'tab'}
-              onClick={() => setView('accounts')}
-            >
-              Accounts
-            </button>
+            <>
+              <button
+                type="button"
+                className={view === 'accounts' ? 'tab current' : 'tab'}
+                onClick={() => setView('accounts')}
+              >
+                Accounts
+              </button>
+              <button
+                type="button"
+                className={view === 'audit' ? 'tab current' : 'tab'}
+                onClick={() => setView('audit')}
+              >
+                Audit
+              </button>
+            </>
           ) : null}
         </nav>
         <span className="who">
@@ -145,6 +155,11 @@ export function Shell(): JSX.Element {
       {view === 'accounts' ? (
         <div className="page">
           <AccountsPanel />
+        </div>
+      ) : null}
+      {view === 'audit' ? (
+        <div className="page">
+          <AuditPanel />
         </div>
       ) : null}
     </>

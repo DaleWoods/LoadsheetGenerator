@@ -2,13 +2,15 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
+import type { Db } from '../db/index.js';
 import { env } from '../config/env.js';
+import { addressOf, record } from '../services/auditService.js';
 import { anthropicFlexResolver } from '../integrations/flexResolver.js';
 import { describeQuery } from '../services/flexService.js';
 
 const askSchema = z.object({ description: z.string().trim().min(3).max(4000) });
 
-export function queryRoutes(): Router {
+export function queryRoutes(db: Db): Router {
   const router = Router();
 
   router.get('/modes', (_req, res) => {
@@ -33,6 +35,22 @@ export function queryRoutes(): Router {
       try {
         const result = await describeQuery(parsed.data.description, anthropicFlexResolver(env.anthropicApiKey));
         console.log(`query written in ${Date.now() - started}ms: ${result.name}`);
+        if (req.user) {
+          void record(db, {
+            userId: req.user.id,
+            username: req.user.username,
+            action: 'query.written',
+            summary: `${req.user.displayName} wrote a query: ${result.name}`,
+            detail: {
+              asked: parsed.data.description,
+              kind: result.kind,
+              query: result.query,
+              findings: result.findings.map((finding) => `${finding.severity}: ${finding.message}`),
+              tookMs: Date.now() - started,
+            },
+            ip: addressOf(req),
+          });
+        }
         res.json(result);
       } catch (error) {
         console.error(`query failed after ${Date.now() - started}ms:`, error);

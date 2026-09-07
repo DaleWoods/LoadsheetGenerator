@@ -401,3 +401,26 @@ export async function describeFlexQuery(description: string): Promise<FlexResult
     clearTimeout(timer);
   }
 }
+
+/* ----------------------------------------------------------------- audit - */
+
+export interface AuditEvent {
+  id: string;
+  at: string;
+  userId: string | null;
+  username: string;
+  action: string;
+  summary: string;
+  detail: Record<string, unknown>;
+  ip: string | null;
+}
+
+export async function fetchAudit(filters: { action?: string; username?: string } = {}): Promise<{
+  events: AuditEvent[];
+  facets: { actions: string[]; usernames: string[] };
+}> {
+  const params = new URLSearchParams();
+  if (filters.action) params.set('action', filters.action);
+  if (filters.username) params.set('username', filters.username);
+  return json(await fetch(`/api/audit?${params.toString()}`));
+}

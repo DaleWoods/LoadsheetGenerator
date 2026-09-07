@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Db } from '../db/index.js';
 import { requireAdmin } from '../auth/middleware.js';
+import { addressOf, record } from '../services/auditService.js';
 import { attributesFor, itemTypesView } from '../domain/catalogueView.js';
 import { loadLibrary } from '../services/libraryService.js';
 import {
@@ -56,7 +57,22 @@ export function libraryRoutes(db: Db): Router {
   // tidying up would take it away from everybody.
   router.delete('/repository/:id', requireAdmin, async (req, res) => {
     try {
+      // Read before removing, so the record says what went rather than an id.
+      const going = await repositoryDetail(db, req.params.id ?? '').catch(() => null);
       await removeFromRepository(db, req.params.id ?? '');
+      if (req.user) {
+        void record(db, {
+          userId: req.user.id,
+          username: req.user.username,
+          action: 'repository.removed',
+          summary: `${req.user.displayName} removed ${going?.entry.name ?? 'a sheet'} from the repository`,
+          detail: {
+            id: req.params.id ?? '',
+            ...(going ? { name: going.entry.name, itemTypes: going.entry.itemTypes } : {}),
+          },
+          ip: addressOf(req),
+        });
+      }
       res.json({ ok: true });
     } catch (err) {
       if (err instanceof NotRemovableError) {

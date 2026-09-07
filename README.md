@@ -159,6 +159,17 @@ out of the generated script rather than written from an example.
 It is deliberately not a walkthrough. The people using this import ImpEx for a
 living - see `CLAUDE.md` for what that rules in and out.
 
+## Audit
+
+An administrator-only tab recording every action: load sheets described and
+downloaded, saves and removals, queries written, sign-ins and the ones refused,
+and every change to an account. Each kind is presented in its own shape rather
+than as a row of JSON, grouped by day, filterable by action and by person.
+
+It is separate from the history, which records what was built so it can be
+built again. This one answers who did it. Recording never breaks the action it
+records: a failed write is logged and swallowed.
+
 ## Keeping the documents current
 
 `README.md`, `CLAUDE.md` and `docs/decisions.md` are updated in the same commit

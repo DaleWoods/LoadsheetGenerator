@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { Db } from '../db/index.js';
 import { requireAdmin } from '../auth/middleware.js';
+import { addressOf, record } from '../services/auditService.js';
 import {
   countAdmins,
   createUser,
@@ -42,6 +43,14 @@ export function userRoutes(db: Db): Router {
     try {
       // A password set by somebody else has to be changed on first use.
       const user = await createUser(db, { ...parsed.data, mustChange: true });
+      void record(db, {
+        userId: req.user!.id,
+        username: req.user!.username,
+        action: 'account.created',
+        summary: `${req.user!.displayName} created the account ${user.username}`,
+        detail: { account: user.username, displayName: user.displayName },
+        ip: addressOf(req),
+      });
       res.status(201).json({ user });
     } catch (err) {
       res.status(400).json({ error: (err as Error).message });
@@ -72,6 +81,26 @@ export function userRoutes(db: Db): Router {
       res.status(400).json({ error: (err as Error).message });
       return;
     }
+
+    // Said as the change it is, so the record reads without a diff. The new
+    // password is never part of it, only that one was set.
+    const changes: string[] = [];
+    if (parsed.data.password !== undefined) changes.push("reset the password");
+    if (parsed.data.role !== undefined) changes.push(`made them ${parsed.data.role === 'admin' ? 'an administrator' : 'a member'}`);
+    if (parsed.data.disabled !== undefined) changes.push(parsed.data.disabled ? 'switched the account off' : 'switched the account back on');
+    void record(db, {
+      userId: req.user!.id,
+      username: req.user!.username,
+      action: 'account.updated',
+      summary: `${req.user!.displayName} ${changes.join(' and ')} for ${user.username}`,
+      detail: {
+        account: user.username,
+        ...(parsed.data.role !== undefined ? { role: parsed.data.role } : {}),
+        ...(parsed.data.disabled !== undefined ? { disabled: parsed.data.disabled } : {}),
+        passwordReset: parsed.data.password !== undefined,
+      },
+      ip: addressOf(req),
+    });
     res.json({ user: await findById(db, user.id) });
   });
 

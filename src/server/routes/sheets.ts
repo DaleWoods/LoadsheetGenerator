@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Db } from '../db/index.js';
+import { addressOf, record as audit } from '../services/auditService.js';
 import { NotPackageableError, packageLoadSheet, unverifiedColumns } from '../domain/packageSheet.js';
 import { isResolverConfigured, type Resolver } from '../integrations/anthropic.js';
 import { saveToRepository } from '../services/repositoryService.js';
@@ -39,6 +40,21 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
       return;
     }
     const resolution = await resolveDescription(db, parsed.data.description, resolver);
+    if (req.user) {
+      void audit(db, {
+        userId: req.user.id,
+        username: req.user.username,
+        action: 'sheet.described',
+        summary: `${req.user.displayName} described a load sheet: ${resolution.summary}`,
+        detail: {
+          asked: parsed.data.description,
+          ...(resolution.request ? { itemType: resolution.request.itemType, fields: resolution.request.fields.map((f) => f.name) } : {}),
+          ...(resolution.clarification ? { clarification: resolution.clarification } : {}),
+          notes: resolution.notes,
+        },
+        ip: addressOf(req),
+      });
+    }
     res.json(resolution);
   });
 
@@ -83,6 +99,24 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
         rowCount: sheet.resolved.blocks[0]?.rows.length ?? 0,
         outcome: 'learned',
         user: req.user,
+      });
+      void audit(db, {
+        userId: req.user.id,
+        username: req.user.username,
+        action: 'sheet.saved',
+        summary:
+          `${req.user.displayName} saved ${sheet.impex.filename} to the repository` +
+          (parsed.data.imported ? ', marked as imported cleanly' : ''),
+        detail: {
+          filename: sheet.impex.filename,
+          itemType: parsed.data.request.itemType,
+          imported: parsed.data.imported === true,
+          // Saying it imported cleanly is what promotes a sheet to evidence,
+          // so it is the part of this worth being able to trace back.
+          learned: result.learned,
+          ...(parsed.data.description ? { note: parsed.data.description } : {}),
+        },
+        ip: addressOf(req),
       });
     }
     res.status(201).json(result);
@@ -140,6 +174,25 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
           rowCount: sheet.resolved.blocks[0]?.rows.length ?? 0,
           outcome: 'downloaded',
           user: req.user,
+        });
+        // The audit record is the other half: history says what was built so it
+        // can be built again, this says who took it. A downloaded sheet is the
+        // one thing here that reaches production.
+        void audit(db, {
+          userId: req.user.id,
+          username: req.user.username,
+          action: 'sheet.downloaded',
+          summary: `${req.user.displayName} downloaded ${bundle.filename}`,
+          detail: {
+            filename: bundle.filename,
+            itemType: parsed.data.itemType,
+            direction: sheet.resolved.direction,
+            fields: parsed.data.fields.map((field) => field.name),
+            rows: sheet.resolved.blocks[0]?.rows.length ?? 0,
+            unverified: sheet.resolved.blocks.flatMap((b) => b.columns.filter((c) => c.status === 'unverified').map((c) => c.column.name)),
+            summary: sheet.summary,
+          },
+          ip: addressOf(req),
         });
       }
       res.setHeader('Content-Type', bundle.contentType);

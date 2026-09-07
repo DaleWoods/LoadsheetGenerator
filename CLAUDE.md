@@ -84,6 +84,14 @@ checking, and hides none of the result.
   was visible in these files. `exportShape.test.ts` holds the generator to
   three of them line for line.
 
+- **A new action needs an audit row.** Anything that changes something, sends
+  something out of the app, or is worth accounting for goes through
+  `record()` in `auditService.ts` - called without being awaited, because
+  recording must never break the thing it records. Add the action code to
+  `AuditAction`, and give it a shape in `AuditPanel.tsx`: an event rendered as
+  a row of JSON is one nobody reads. Write the summary at the time; never
+  derive it on the screen, or an old event starts reading as a new one would.
+
 - **`src/shared/sites.ts` and `src/shared/catalogs.ts` are business knowledge,
   not derived data.** The fascias, their uids, their order-number prefixes, the
   click-and-collect rule and the catalog versions cannot be worked out from the

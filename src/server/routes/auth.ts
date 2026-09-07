@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { addressOf, record } from '../services/auditService.js';
 import type { Db } from '../db/index.js';
 import { env } from '../config/env.js';
 import { requireSignedIn } from '../auth/middleware.js';
@@ -46,6 +47,15 @@ export function authRoutes(db: Db): Router {
     }
     const result = await signIn(db, parsed.data.username, parsed.data.password, req.ip);
     if (!result.ok) {
+      // Recorded whatever the reason, because a run of these is the thing an
+      // administrator most wants to see. The password itself never goes near it.
+      void record(db, {
+        username: parsed.data.username,
+        action: 'session.refused',
+        summary: `Sign-in refused for ${parsed.data.username}`,
+        detail: { reason: result.reason },
+        ip: addressOf(req),
+      });
       if (result.reason === 'throttled') {
         res.status(429).json({
           error: `Too many attempts. Try again in ${Math.ceil((result.retryInSeconds ?? 60) / 60)} minute(s).`,
@@ -63,12 +73,28 @@ export function authRoutes(db: Db): Router {
 
     const session = await startSession(db, result.user.id, req.get('user-agent') ?? undefined);
     setCookie(res, session.token, session.expiresAt);
+    void record(db, {
+      userId: result.user.id,
+      username: result.user.username,
+      action: 'session.signedIn',
+      summary: `${result.user.displayName} signed in`,
+      ip: addressOf(req),
+    });
     res.json({ user: publicUser(result.user) });
   });
 
   router.post('/logout', async (req, res) => {
     const token = req.cookies?.[SESSION_COOKIE] as string | undefined;
     if (token) await endSession(db, token);
+    if (req.user) {
+      void record(db, {
+        userId: req.user.id,
+        username: req.user.username,
+        action: 'session.signedOut',
+        summary: `${req.user.displayName} signed out`,
+        ip: addressOf(req),
+      });
+    }
     res.clearCookie(SESSION_COOKIE, { path: '/' });
     res.json({ ok: true });
   });
@@ -103,6 +129,14 @@ export function authRoutes(db: Db): Router {
     // Changing a password ends every session, so this one is replaced.
     const session = await startSession(db, req.user!.id, req.get('user-agent') ?? undefined);
     setCookie(res, session.token, session.expiresAt);
+    void record(db, {
+      userId: req.user!.id,
+      username: req.user!.username,
+      action: 'session.passwordChanged',
+      summary: `${req.user!.displayName} set their own password`,
+      detail: { wasTemporary: req.user!.mustChange === true },
+      ip: addressOf(req),
+    });
     res.json({ user: publicUser({ ...req.user!, mustChange: false }) });
   });
 
