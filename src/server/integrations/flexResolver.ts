@@ -58,10 +58,29 @@ export const flexResolutionSchema = z.object({
     .array(
       fieldRef.extend({
         label: z.string().nullable().describe('The heading, in plain words. Null to leave the column unheaded.'),
+        aggregate: z
+          .enum(['count', 'sum', 'avg', 'min', 'max'])
+          .nullable()
+          .describe(
+            'Set to count for "how many", or sum/avg/min/max over a numeric field. Null for an ordinary column. count writes COUNT(*), so alias and field only say what is being counted.',
+          ),
       }),
     )
     .describe('The columns to return, in order. For an export, exactly one: the PK of the type in from.'),
   where: z.array(condition).describe('Conditions, ANDed together. Empty when the query returns everything.'),
+  groupBy: z
+    .array(fieldRef)
+    .describe(
+      'The columns to group by, when the query counts or totals. Every selected column that is not itself aggregated must be here, or the count comes out per row.',
+    ),
+  having: z
+    .object({
+      aggregate: z.enum(['count', 'sum', 'avg', 'min', 'max']),
+      op: z.enum(['eq', 'ne', 'lt', 'lte', 'gt', 'gte']),
+      value: z.string(),
+    })
+    .nullable()
+    .describe('A condition on the count itself - "stores with more than 10 orders". Null when there is none.'),
   orderBy: z
     .array(fieldRef.extend({ direction: z.enum(['asc', 'desc']) }))
     .describe('Ordering. Empty when it does not matter.'),
@@ -89,6 +108,7 @@ Work from the catalogue you are given, which is read out of the queries this tea
 - Copy a join condition from the catalogue's join list when there is one for that pair. They have already worked out how these types connect.
 - A reporting query selects the columns somebody wants to read, each with a plain-English label. An export query selects exactly one column - the PK of the type in from - because it feeds exportItemsFlexibleSearch, and selecting anything else makes an export that runs and writes nothing.
 - Set distinct when a join would otherwise repeat a row.
+- "How many", "count of", "per store", "by fascia" means an aggregate. Set aggregate on the counted column and put every other selected column in groupBy - a column selected beside a count but not grouped by makes the count come out per row, which reads like an answer and is not one. "Stores with more than 10 orders" is a having.
 - Dates are written as literal timestamps, 'YYYY-MM-DD HH:MM:SS'. Resolve a relative range yourself against the date you are given, and say in notes what range you used.
 - Never match on a PK. The catalogue lists a few they use, but a PK is a different row in every environment, so a query carrying one returns nothing when it is run somewhere else. Match on the code or the name instead, joining EnumerationValue where the field is an enum.
 - The sites, their order-number prefixes and the click-and-collect rule are given below. Use them: "UK orders" means the UK sites' prefixes or their base stores, and "direct orders, no click and collects" means order codes that do not begin with S. Never invent a prefix that is not listed.

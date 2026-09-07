@@ -351,9 +351,17 @@ Three checks are firmer than the rest:
 
 The shape of the specification was measured, not designed. Across their 82
 queries: 43 select with labels, 32 join, 32 have a WHERE, 11 order, 10 are
-DISTINCT — all covered. Subselects (5), CASE (7), GROUP BY (2) and UNION (1)
-are the tail, and a request needing one gets a question back rather than a
-query that half does it.
+DISTINCT — all covered. Counts and grouping were added after the fact, because
+"how many orders per store" is what people ask by reflex and the app was
+answering it with a question. `COUNT(*) as 'Count'` and `GROUP BY {o:code}` are
+their forms, down to the `as` that an aggregated column takes and a plain one
+does not. Subselects, CASE and UNION stay out, and a request needing one still
+gets a question rather than a query that half does it.
+
+The check that earns its place there is `flex.notGrouped`. A column selected
+beside a count but not grouped by returns one row per record, each counted 1 —
+SQL runs it happily, and it reads exactly like an answer. That is refused
+rather than warned about.
 
 Parsing their library taught two things worth keeping. Aliases must resolve
 inside the query that declares them — resolved across the file, `{o:code}`
@@ -482,9 +490,17 @@ Three checks are firmer than the rest:
 
 The shape of the specification was measured, not designed. Across their 82
 queries: 43 select with labels, 32 join, 32 have a WHERE, 11 order, 10 are
-DISTINCT — all covered. Subselects (5), CASE (7), GROUP BY (2) and UNION (1)
-are the tail, and a request needing one gets a question back rather than a
-query that half does it.
+DISTINCT — all covered. Counts and grouping were added after the fact, because
+"how many orders per store" is what people ask by reflex and the app was
+answering it with a question. `COUNT(*) as 'Count'` and `GROUP BY {o:code}` are
+their forms, down to the `as` that an aggregated column takes and a plain one
+does not. Subselects, CASE and UNION stay out, and a request needing one still
+gets a question rather than a query that half does it.
+
+The check that earns its place there is `flex.notGrouped`. A column selected
+beside a count but not grouped by returns one row per record, each counted 1 —
+SQL runs it happily, and it reads exactly like an answer. That is refused
+rather than warned about.
 
 Parsing their library taught two things worth keeping. Aliases must resolve
 inside the query that declares them — resolved across the file, `{o:code}`

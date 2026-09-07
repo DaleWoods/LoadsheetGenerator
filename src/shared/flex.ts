@@ -35,9 +35,17 @@ export interface Condition extends FieldRef {
   column?: FieldRef;
 }
 
+export type Aggregate = 'count' | 'sum' | 'avg' | 'min' | 'max';
+
 export interface SelectColumn extends FieldRef {
   /** The heading, written after the column the way their queries write it. */
   label?: string;
+  /**
+   * Counts and totals. `count` writes `COUNT(*)`, which is the form in their
+   * own queries - `SELECT COUNT(*) as 'Count'` - and the alias and field are
+   * then only there to say what is being counted.
+   */
+  aggregate?: Aggregate;
 }
 
 export interface Join {
@@ -63,6 +71,13 @@ export interface FlexQuery {
   select: SelectColumn[];
   /** ANDed together, as all of theirs are. */
   where?: Condition[];
+  /** The columns the aggregates are grouped by. */
+  groupBy?: FieldRef[];
+  /**
+   * A condition on the aggregate itself, after grouping - their
+   * `HAVING COUNT(*) >= 2`. Only meaningful with one.
+   */
+  having?: { aggregate: Aggregate; op: Comparison; value: string };
   orderBy?: { alias: string; field: string; direction?: 'asc' | 'desc' }[];
 }
 
@@ -101,9 +116,22 @@ function condition(c: Condition): string {
  * and its alias inside the FROM braces, and a quoted heading after a selected
  * column.
  */
+/** `COUNT(*)`, as their queries write it, or the aggregate over a column. */
+function aggregated(column: SelectColumn): string {
+  if (column.aggregate === undefined) return ref(column);
+  if (column.aggregate === 'count') return 'COUNT(*)';
+  return `${column.aggregate.toUpperCase()}(${ref(column)})`;
+}
+
 export function formatFlexQuery(query: FlexQuery): string {
+  // An aggregated column takes `as` before its heading and a plain one does
+  // not - both copied from their queries rather than made consistent.
   const select = query.select
-    .map((column) => `${ref(column)}${column.label ? ` ${quote(column.label)}` : ''}`)
+    .map((column) => {
+      const body = aggregated(column);
+      if (!column.label) return body;
+      return column.aggregate ? `${body} as ${quote(column.label)}` : `${body} ${quote(column.label)}`;
+    })
     .join(', ');
 
   const joins = (query.joins ?? [])
@@ -118,6 +146,14 @@ export function formatFlexQuery(query: FlexQuery): string {
     `FROM {${query.from.type} AS ${query.from.alias}${joins}}`,
   ];
   if (query.where && query.where.length > 0) parts.push(`WHERE ${query.where.map(condition).join(' AND ')}`);
+  if (query.groupBy && query.groupBy.length > 0) {
+    parts.push(`GROUP BY ${query.groupBy.map(ref).join(', ')}`);
+  }
+  if (query.having) {
+    const ops: Record<string, string> = { eq: '=', ne: '<>', lt: '<', lte: '<=', gt: '>', gte: '>=' };
+    const body = query.having.aggregate === 'count' ? 'COUNT(*)' : `${query.having.aggregate.toUpperCase()}(*)`;
+    parts.push(`HAVING ${body} ${ops[query.having.op] ?? '='} ${query.having.value}`);
+  }
   if (query.orderBy && query.orderBy.length > 0) {
     parts.push(
       `ORDER BY ${query.orderBy
@@ -144,5 +180,6 @@ export function fieldRefsOf(query: FlexQuery): FieldRef[] {
     ...(query.joins ?? []).flatMap((join) => join.on.flatMap(fromCondition)),
     ...(query.where ?? []).flatMap(fromCondition),
     ...(query.orderBy ?? []).map((o) => ({ alias: o.alias, field: o.field })),
+    ...(query.groupBy ?? []),
   ];
 }

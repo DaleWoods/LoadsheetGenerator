@@ -89,6 +89,10 @@ natural-language load sheet mode: the model returns a specification - types,
 fields, joins, conditions - which is checked against a catalogue parsed from
 `docs/wosg-flexisearch-queries.md` before any SQL is written.
 
+It handles counts and grouping - "how many orders per store last week" - as well
+as ordinary selects, joins and conditions. Subselects, CASE and UNION are out of
+scope and it says so rather than half-answering.
+
 It only reads, so the checks are lighter than a load sheet's: an unknown field
 warns and the query still appears. Three things are firmer - an export query
 must select the PK and nothing else, an undeclared alias is an error, and a PK

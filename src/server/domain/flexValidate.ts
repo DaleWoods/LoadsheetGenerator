@@ -133,5 +133,51 @@ export function validateFlexQuery(query: FlexQuery, library: FlexLibrary): FlexF
     add({ severity: 'error', code: 'flex.noColumns', message: 'The query selects no columns.' });
   }
 
+  /*
+   * Grouping. A column that is neither aggregated nor grouped is the mistake
+   * that makes a count look right and mean nothing - "orders per store" with
+   * the order code still selected returns one row per order, counted 1 each.
+   * SQL catches it, but only after somebody has read the number.
+   */
+  const aggregates = query.select.filter((column) => column.aggregate !== undefined);
+  const grouped = new Set((query.groupBy ?? []).map((g) => `${g.alias}.${g.field}`.toLowerCase()));
+  if (aggregates.length > 0) {
+    const ungrouped = query.select.filter(
+      (column) => column.aggregate === undefined && !grouped.has(`${column.alias}.${column.field}`.toLowerCase()),
+    );
+    if (ungrouped.length > 0) {
+      add({
+        severity: 'error',
+        code: 'flex.notGrouped',
+        message:
+          `${ungrouped.map((c) => `{${c.alias}:${c.field}}`).join(', ')} ${ungrouped.length === 1 ? 'is' : 'are'} selected beside a ` +
+          'count but not grouped by, so the count would be per row rather than per group. Group by it or take it out.',
+      });
+    }
+  } else if ((query.groupBy ?? []).length > 0) {
+    add({
+      severity: 'warning',
+      code: 'flex.groupWithoutAggregate',
+      message: 'The query groups but counts nothing, so grouping only removes duplicate rows. DISTINCT says that more plainly.',
+    });
+  }
+
+  if (query.having && aggregates.length === 0) {
+    add({
+      severity: 'error',
+      code: 'flex.havingWithoutAggregate',
+      message: 'HAVING is a condition on a count, and this query has none. A condition on a column goes in the WHERE.',
+    });
+  }
+
+  // An export takes the PKs of items to write out; a count is not an item.
+  if (query.kind === 'export' && aggregates.length > 0) {
+    add({
+      severity: 'error',
+      code: 'flex.exportAggregate',
+      message: 'An export query has to return the items to export, so it cannot count or group. Ask for it as a query to read instead.',
+    });
+  }
+
   return findings;
 }

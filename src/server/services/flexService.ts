@@ -53,8 +53,13 @@ export function specFrom(resolution: FlexResolution): FlexQuery {
       alias: column.alias,
       field: column.field,
       ...(column.label ? { label: column.label } : {}),
+      ...(column.aggregate ? { aggregate: column.aggregate } : {}),
     })),
     ...(resolution.where.length > 0 ? { where: resolution.where.map(condition) } : {}),
+    ...(resolution.groupBy.length > 0
+      ? { groupBy: resolution.groupBy.map((g) => ({ alias: g.alias, field: g.field })) }
+      : {}),
+    ...(resolution.having ? { having: resolution.having } : {}),
     ...(resolution.orderBy.length > 0
       ? { orderBy: resolution.orderBy.map((o) => ({ alias: o.alias, field: o.field, direction: o.direction })) }
       : {}),

@@ -19,6 +19,8 @@ function answering(resolution: Partial<FlexResolution>): FlexResolver {
       joins: [],
       select: [],
       where: [],
+      groupBy: [],
+      having: null,
       orderBy: [],
       clarification: null,
       summary: 'A test.',
@@ -27,6 +29,14 @@ function answering(resolution: Partial<FlexResolution>): FlexResolver {
     } as FlexResolution,
   });
 }
+
+/** A selected column, with the nulls the schema requires. */
+const col = (alias: string, field: string, label: string | null = null, aggregate: 'count' | 'sum' | null = null) => ({
+  alias,
+  field,
+  label,
+  aggregate,
+});
 
 const cond = (alias: string, field: string, op: FlexResolution['where'][number]['op'], value: string | null = null) => ({
   alias,
@@ -43,10 +53,7 @@ describe('“all orders from the last week with the order number and date”', (
       'provide me with a query to capture all orders from the last week containing the order number and date column',
       answering({
         name: 'Orders Last Week',
-        select: [
-          { alias: 'o', field: 'code', label: 'Order Number' },
-          { alias: 'o', field: 'date', label: 'Date' },
-        ],
+        select: [col('o', 'code', 'Order Number'), col('o', 'date', 'Date')],
         where: [
           cond('o', 'date', 'gte', '2026-08-30 00:00:00'),
           cond('o', 'date', 'lte', '2026-09-06 00:00:00'),
@@ -74,7 +81,7 @@ describe('“an export query that pulls all categories with type Watches”', ()
         kind: 'export',
         name: 'Watches Categories Export',
         from: { type: 'Category', alias: 'c' },
-        select: [{ alias: 'c', field: 'pk', label: null }],
+        select: [col('c', 'pk')],
         where: [cond('c', 'code', 'eq', 'Watches')],
       }),
     );
@@ -91,10 +98,90 @@ describe('“an export query that pulls all categories with type Watches”', ()
       answering({
         kind: 'export',
         from: { type: 'Category', alias: 'c' },
-        select: [{ alias: 'c', field: 'code', label: 'Code' }],
+        select: [col('c', 'code', 'Code')],
       }),
     );
     expect(out.findings.find((f) => f.code === 'flex.exportSelect')).toMatchObject({ severity: 'error' });
+  });
+});
+
+describe('counting and grouping', () => {
+  it('writes "how many orders per store last week" the way their queries write it', async () => {
+    const out = await describeQuery(
+      'how many orders per store last week',
+      answering({
+        name: 'Orders Per Store',
+        joins: [
+          {
+            type: 'BaseStore',
+            alias: 'bs',
+            left: false,
+            on: [{ alias: 'o', field: 'store', op: 'eq', value: null, values: null, column: { alias: 'bs', field: 'pk' } }],
+          },
+        ],
+        select: [col('bs', 'uid', 'Store'), col('o', 'pk', 'Orders', 'count')],
+        where: [cond('o', 'date', 'gte', '2026-08-31 00:00:00')],
+        groupBy: [{ alias: 'bs', field: 'uid' }],
+        orderBy: [{ alias: 'bs', field: 'uid', direction: 'asc' }],
+      }),
+    );
+
+    // COUNT(*) with `as` before its heading, and a plain column without -
+    // both copied from their library rather than made consistent.
+    expect(out.query).toBe(
+      "SELECT {bs:uid} 'Store', COUNT(*) as 'Orders' " +
+        'FROM {Order AS o JOIN BaseStore AS bs ON {o:store} = {bs:pk}} ' +
+        "WHERE {o:date} >= '2026-08-31 00:00:00' GROUP BY {bs:uid} ORDER BY {bs:uid}",
+    );
+    expect(out.findings).toEqual([]);
+  });
+
+  it('carries a condition on the count itself', async () => {
+    const out = await describeQuery(
+      'stores with more than 10 orders',
+      answering({
+        joins: [
+          {
+            type: 'BaseStore',
+            alias: 'bs',
+            left: false,
+            on: [{ alias: 'o', field: 'store', op: 'eq', value: null, values: null, column: { alias: 'bs', field: 'pk' } }],
+          },
+        ],
+        select: [col('bs', 'uid', 'Store'), col('o', 'pk', 'Orders', 'count')],
+        groupBy: [{ alias: 'bs', field: 'uid' }],
+        having: { aggregate: 'count', op: 'gt', value: '10' },
+      }),
+    );
+    expect(out.query).toContain('GROUP BY {bs:uid} HAVING COUNT(*) > 10');
+    expect(out.findings).toEqual([]);
+  });
+
+  it('refuses a count with a column beside it that is not grouped by', async () => {
+    // "Orders per store" with the order code still selected returns one row
+    // per order, each counted 1. It reads like an answer and is not one.
+    const out = await describeQuery(
+      'how many orders per store',
+      answering({
+        select: [col('o', 'code', 'Order'), col('o', 'pk', 'Orders', 'count')],
+        groupBy: [],
+      }),
+    );
+    const finding = out.findings.find((f) => f.code === 'flex.notGrouped')!;
+    expect(finding.severity).toBe('error');
+    expect(finding.message).toContain('{o:code}');
+  });
+
+  it('refuses to count in an export, which has to return items', async () => {
+    const out = await describeQuery(
+      'export a count of products',
+      answering({
+        kind: 'export',
+        from: { type: 'Product', alias: 'p' },
+        select: [col('p', 'pk', null, 'count')],
+      }),
+    );
+    expect(out.findings.find((f) => f.code === 'flex.exportAggregate')).toMatchObject({ severity: 'error' });
   });
 });
 
@@ -102,7 +189,7 @@ describe('the checks between the model and the console', () => {
   it('flags a field WOSG have never queried, and offers the near miss', async () => {
     const out = await describeQuery(
       'orders by their number',
-      answering({ select: [{ alias: 'o', field: 'code', label: 'Code' }], where: [cond('o', 'cod', 'eq', 'X')] }),
+      answering({ select: [col('o', 'code', 'Code')], where: [cond('o', 'cod', 'eq', 'X')] }),
     );
     const finding = out.findings.find((f) => f.code === 'flex.unknownField')!;
     expect(finding.severity).toBe('warning');
@@ -113,7 +200,7 @@ describe('the checks between the model and the console', () => {
   it('catches an alias the query never declares', async () => {
     const out = await describeQuery(
       'orders and their store',
-      answering({ select: [{ alias: 'bs', field: 'uid', label: 'Store' }] }),
+      answering({ select: [col('bs', 'uid', 'Store')] }),
     );
     expect(out.findings.find((f) => f.code === 'flex.unknownAlias')).toMatchObject({ severity: 'error' });
   });
@@ -123,7 +210,7 @@ describe('the checks between the model and the console', () => {
       'approved products',
       answering({
         from: { type: 'Product', alias: 'p' },
-        select: [{ alias: 'p', field: 'code', label: 'SKU' }],
+        select: [col('p', 'code', 'SKU')],
         where: [cond('p', 'approvalstatus', 'eq', '8796100493403')],
       }),
     );
@@ -132,10 +219,10 @@ describe('the checks between the model and the console', () => {
 
   it('passes a question back rather than half-writing a query it cannot shape', async () => {
     const out = await describeQuery(
-      'how many orders per store last month',
-      answering({ select: [], clarification: 'That needs a GROUP BY, which this app does not write yet. Shall I list the orders instead?' }),
+      'orders whose total beats the average for their store',
+      answering({ select: [], clarification: 'That needs a subselect, which this app does not write. Shall I list the orders with their totals instead?' }),
     );
     expect(out.query).toBe('');
-    expect(out.clarification).toContain('GROUP BY');
+    expect(out.clarification).toContain('subselect');
   });
 });
