@@ -5,11 +5,15 @@ import { addressOf, record as audit } from '../services/auditService.js';
 import { NotPackageableError, packageLoadSheet, unverifiedColumns } from '../domain/packageSheet.js';
 import { isResolverConfigured, type Resolver } from '../integrations/anthropic.js';
 import { saveToRepository } from '../services/repositoryService.js';
-import { getEntry, listHistory, record } from '../services/historyService.js';
+import { failuresLike, getEntry, listHistory, record, reportFailure } from '../services/historyService.js';
 import { resolveDescription } from '../services/resolveService.js';
 import { generateFromRequest, sheetRequestSchema } from '../services/sheetService.js';
 
 const describeSchema = z.object({ description: z.string().trim().min(3).max(4000) });
+const failureSchema = z.object({
+  id: z.string().min(1).max(200),
+  note: z.string().trim().min(3).max(4000),
+});
 
 const saveSchema = z.object({
   request: sheetRequestSchema,
@@ -129,10 +133,33 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
       return;
     }
     const sheet = await generateFromRequest(db, parsed.data);
+
+    /*
+     * A sheet with exactly these fields on this item type has failed in HAC
+     * before. Said as a finding rather than a separate panel, because it
+     * belongs with everything else somebody checks before downloading - and it
+     * is the one finding the app could not work out for itself.
+     */
+    const failures = await failuresLike(
+      db,
+      parsed.data.itemType,
+      parsed.data.fields.map((field) => field.name),
+    );
+    const findings = [
+      ...sheet.findings,
+      ...failures.slice(0, 1).map((failure) => ({
+        severity: 'warning' as const,
+        code: 'history.failedBefore',
+        message:
+          `A sheet with these fields was reported as failing in SAP Commerce on ` +
+          `${new Date(failure.at).toLocaleDateString('en-GB')}: ${failure.note}`,
+      })),
+    ];
+
     res.json({
       impex: sheet.impex,
       csvs: sheet.csvs,
-      findings: sheet.findings,
+      findings,
       summary: sheet.summary,
       packageable: sheet.packageable,
       basedOn: sheet.basedOn ?? null,
@@ -152,6 +179,38 @@ export function sheetRoutes(db: Db, resolver?: Resolver): Router {
         chosen: parsed.data.fields.some((field) => field.name.toLowerCase() === column.column.name.toLowerCase()),
       })),
     });
+  });
+
+  // Reporting that a sheet failed after it left the app. The other half of the
+  // "it imported cleanly" tick, and the more useful one: success only confirms
+  // what the app already believed, where a failure is something it did not know.
+  router.post('/failed', async (req, res) => {
+    const parsed = failureSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Say which sheet failed and what SAP Commerce said.' });
+      return;
+    }
+    const entry = await reportFailure(db, parsed.data.id, parsed.data.note.trim());
+    if (!entry) {
+      res.status(404).json({ error: 'No such load sheet in the history.' });
+      return;
+    }
+    if (req.user) {
+      void audit(db, {
+        userId: req.user.id,
+        username: req.user.username,
+        action: 'sheet.failed',
+        summary: `${req.user.displayName} reported ${entry.filename} as failing in HAC`,
+        detail: {
+          filename: entry.filename,
+          itemType: entry.itemType,
+          fields: entry.request.fields.map((field) => field.name),
+          message: parsed.data.note.trim(),
+        },
+        ip: addressOf(req),
+      });
+    }
+    res.json({ entry });
   });
 
   router.post('/package', async (req, res) => {

@@ -1488,3 +1488,38 @@ pre.file.audit-query {
   margin: 0 0 10px;
   font-size: 13px;
 }
+
+/* --------------------------------------------- a sheet that did not work - */
+
+.badge-bad {
+  color: var(--bad);
+  background: #fdf3f2;
+  border-color: #f3d6d3;
+}
+.history-entry.did-fail {
+  border-left: 3px solid var(--bad);
+}
+.history-failure {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: #fdf3f2;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+}
+.history-failure strong {
+  color: var(--ink);
+}
+.report-failure {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--bad);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.report-failure .stacked {
+  margin-bottom: 8px;
+}

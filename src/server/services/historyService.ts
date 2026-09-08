@@ -11,7 +11,12 @@ import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/index.js';
 import type { SheetRequest } from './sheetService.js';
 
-export type Outcome = 'downloaded' | 'learned';
+/**
+ * What became of a sheet. `failed` is reported by hand after HAC rejects one,
+ * and is the only outcome that travels backwards: it warns whoever builds the
+ * same thing next.
+ */
+export type Outcome = 'downloaded' | 'learned' | 'failed';
 
 export interface HistoryEntry {
   id: string;
@@ -25,6 +30,9 @@ export interface HistoryEntry {
   rowCount: number;
   outcome: Outcome;
   request: SheetRequest;
+  /** What HAC said, when somebody reported this one as failing. */
+  failureNote?: string;
+  reportedAt?: string;
 }
 
 interface Row {
@@ -39,6 +47,8 @@ interface Row {
   filename: string;
   row_count: number;
   outcome: string;
+  failure_note: string | null;
+  reported_at: string | null;
 }
 
 function toEntry(row: Row): HistoryEntry {
@@ -52,8 +62,10 @@ function toEntry(row: Row): HistoryEntry {
     summary: row.summary,
     filename: row.filename,
     rowCount: Number(row.row_count),
-    outcome: row.outcome === 'learned' ? 'learned' : 'downloaded',
+    outcome: row.outcome === 'learned' ? 'learned' : row.outcome === 'failed' ? 'failed' : 'downloaded',
     request: JSON.parse(row.request) as SheetRequest,
+    ...(row.failure_note ? { failureNote: row.failure_note } : {}),
+    ...(row.reported_at ? { reportedAt: row.reported_at } : {}),
   };
 }
 
@@ -106,4 +118,52 @@ export async function listHistory(db: Db, options: { limit?: number; username?: 
 export async function getEntry(db: Db, id: string): Promise<HistoryEntry | undefined> {
   const row = await db.get<Row>('SELECT * FROM generation WHERE id = ?', [id]);
   return row ? toEntry(row) : undefined;
+}
+
+/**
+ * Reporting that a sheet failed after it left the app.
+ *
+ * The message is kept whole, in the words HAC used. Parsing it would mean
+ * guessing at a format that varies by error, and the part worth keeping is
+ * usually the part a guess would drop.
+ */
+export async function reportFailure(db: Db, id: string, note: string): Promise<HistoryEntry | undefined> {
+  const entry = await getEntry(db, id);
+  if (!entry) return undefined;
+  await db.run('UPDATE generation SET outcome = ?, failure_note = ?, reported_at = ? WHERE id = ?', [
+    'failed',
+    note,
+    new Date().toISOString(),
+    id,
+  ]);
+  return getEntry(db, id);
+}
+
+/**
+ * Sheets reported as failing that wrote the same fields onto the same item
+ * type as the one being built now.
+ *
+ * Matched on the exact set of attributes rather than an overlap, deliberately.
+ * A sheet sharing one field with a failure is not the failure, and a warning
+ * that fires on every sheet touching `code` is one nobody reads by the second
+ * week. This fires when you are rebuilding the thing that broke.
+ */
+export async function failuresLike(
+  db: Db,
+  itemType: string,
+  attributes: string[],
+): Promise<{ at: string; note: string; name: string }[]> {
+  const wanted = [...new Set(attributes.map((a) => a.toLowerCase()))].sort().join(',');
+  if (wanted === '') return [];
+  const rows = await db.all<Row>(
+    "SELECT * FROM generation WHERE outcome = 'failed' AND LOWER(item_type) = ? ORDER BY created_at DESC LIMIT 200",
+    [itemType.toLowerCase()],
+  );
+  return rows
+    .filter((row) => {
+      const request = JSON.parse(row.request) as SheetRequest;
+      const theirs = [...new Set(request.fields.map((field) => field.name.toLowerCase()))].sort().join(',');
+      return theirs === wanted;
+    })
+    .map((row) => ({ at: row.reported_at ?? row.created_at, note: row.failure_note ?? '', name: row.name }));
 }

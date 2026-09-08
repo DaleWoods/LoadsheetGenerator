@@ -18,6 +18,7 @@ import { fetchAudit, type AuditEvent } from './api.js';
 const ACTIONS: Record<string, { label: string; tone: 'plain' | 'notable' | 'warn' }> = {
   'sheet.described': { label: 'Load sheet described', tone: 'plain' },
   'sheet.downloaded': { label: 'Load sheet downloaded', tone: 'notable' },
+  'sheet.failed': { label: 'Reported as failing', tone: 'warn' },
   'sheet.saved': { label: 'Saved to the repository', tone: 'plain' },
   'repository.removed': { label: 'Removed from the repository', tone: 'warn' },
   'query.written': { label: 'Query written', tone: 'plain' },
@@ -77,6 +78,20 @@ function Detail({ event }: { event: AuditEvent }): JSX.Element | null {
             Carried {unverified.join(', ')} — unverified when it went out, and confirmed by hand.
           </p>
         ) : null}
+      </>
+    );
+  }
+
+  if (event.action === 'sheet.failed') {
+    const fields = list(d.fields);
+    return (
+      <>
+        <div className="audit-facts">
+          <span className="tag">{str(d.filename)}</span>
+          <span className="tag">{str(d.itemType)}</span>
+          {fields.length > 0 ? <span className="tag">{fields.join(', ')}</span> : null}
+        </div>
+        <p className="audit-line audit-flag">{str(d.message)}</p>
       </>
     );
   }

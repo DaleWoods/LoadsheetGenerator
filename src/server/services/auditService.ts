@@ -26,6 +26,7 @@ export type AuditAction =
   | 'account.updated'
   | 'sheet.described'
   | 'sheet.downloaded'
+  | 'sheet.failed'
   | 'sheet.saved'
   | 'repository.removed'
   | 'query.written';

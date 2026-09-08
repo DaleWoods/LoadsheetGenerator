@@ -235,7 +235,9 @@ export interface HistoryEntry {
   summary: string;
   filename: string;
   rowCount: number;
-  outcome: 'downloaded' | 'learned';
+  outcome: 'downloaded' | 'learned' | 'failed';
+  failureNote?: string;
+  reportedAt?: string;
   request: SheetRequest;
 }
 
@@ -423,4 +425,16 @@ export async function fetchAudit(filters: { action?: string; username?: string }
   if (filters.action) params.set('action', filters.action);
   if (filters.username) params.set('username', filters.username);
   return json(await fetch(`/api/audit?${params.toString()}`));
+}
+
+/** Reporting that a downloaded sheet failed in HAC. */
+export async function reportFailure(id: string, note: string): Promise<HistoryEntry> {
+  const body = await json<{ entry: HistoryEntry }>(
+    await fetch('/api/sheets/failed', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id, note }),
+    }),
+  );
+  return body.entry;
 }

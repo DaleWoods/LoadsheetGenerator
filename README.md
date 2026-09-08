@@ -117,6 +117,11 @@ Saving puts a sheet on the shelf. Saying it *imported cleanly* additionally
 makes it evidence: only then does it join the catalogue, and only then does an
 attribute it carries stop being flagged as unverified.
 
+The opposite is recorded too. A downloaded sheet can be reported as failing
+from the History tab, with what SAP Commerce said, and anybody building a sheet
+with the same fields on the same item type is shown that before they download
+it - the one thing in the app that travels backwards.
+
 ## Running it
 
 ```

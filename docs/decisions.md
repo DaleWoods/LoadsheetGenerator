@@ -700,3 +700,28 @@ produced. Two things it deliberately does not do:
 And it scrolls at two moments only — the description filling the form in, and
 the first field being ticked — because a page that moves under somebody who is
 working is worse than one that never moves.
+
+## Failure teaches the app, not just success
+
+Ticking "it imported cleanly" promoted a sheet to evidence. Nothing recorded
+the other outcome, which is the more useful one: success only confirms what the
+app already believed, where a failure is something it did not know.
+
+A downloaded sheet can now be reported as failing, with what SAP Commerce
+actually said. The message is kept whole rather than parsed — the format varies
+by error and the part worth keeping is usually the part a guess would drop.
+
+**It lives in the History tab, not beside the download button.** That is when
+you find out: you take the zip, you go to HAC, and some time later it is
+rejected. A control at download time would be asking a question nobody can yet
+answer.
+
+**It travels backwards.** Building a sheet with the same fields on the same
+item type now shows the failure as a finding, before the download. Matched on
+the *exact* set of attributes rather than an overlap, deliberately: a sheet
+sharing one field with a failure is not that failure, and a warning that fires
+on everything touching `code` is one nobody reads by the second week.
+
+This is also the first thing in the app that produces real failures to work
+from. Up to now a HAC rejection reached me as a screenshot in a chat, if at
+all; now it is recorded next to the sheet that caused it.
