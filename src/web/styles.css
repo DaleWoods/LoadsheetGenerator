@@ -1410,3 +1410,81 @@ pre.file.audit-query {
   color: var(--muted);
   font-family: var(--mono);
 }
+
+/* -------------------------------------------------- the two build routes - */
+
+/*
+ * Describing it and setting it up by hand reach the same specification, but
+ * they are not equal in practice: one is quicker and is what most people will
+ * use. So the first is given the weight - a rule down its edge, a badge, room
+ * to breathe - and the second follows a divider rather than sitting in an
+ * identical card beside it.
+ */
+.route-primary {
+  border-left: 3px solid var(--navy);
+  padding-top: 18px;
+}
+.route-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--navy-tint);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.route-head {
+  margin: 10px 0 4px;
+  font-size: 19px;
+}
+.route-lead {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  max-width: 68ch;
+  line-height: 1.55;
+}
+
+.route-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 18px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.route-divider::before,
+.route-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+/* A step behind you, so the page says how far along it is at a glance. */
+.step-number.is-done {
+  background: var(--navy);
+  color: #fff;
+}
+
+/* A question back from the model, with the next move on it. */
+.asked-back {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brass);
+  border-radius: var(--radius-sm);
+  background: #fdfbf6;
+}
+.asked-back-question {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--ink);
+}
+.asked-back .muted {
+  margin: 0 0 10px;
+  font-size: 13px;
+}

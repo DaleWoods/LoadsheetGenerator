@@ -659,3 +659,44 @@ ways: a member gets 403 and somebody with no session gets 401. The refusal
 reason recorded for a bad sign-in is `unknown` for both a wrong username and a
 wrong password, because that is what the person at the screen was told — the
 log does not know more than they do, and the password never goes near it.
+
+## The build page has two routes, and they are not equal
+
+Describing a sheet and picking the fields by hand reach the same
+specification, and the page presented them as two cards of equal weight — a
+"in a hurry?" box above a form, which reads as an aside rather than the way in.
+In practice describing it is quicker and is what most people will use, so it
+now takes the weight: a rule down its edge, a badge, room to breathe, and a
+divider before the manual route rather than an identical card beside it.
+
+Still one page rather than two tabs. The steps below *are* what the
+description fills in, so hiding them behind a tab would hide the result of the
+first route — and everything stays adjustable afterwards, which is the point.
+
+## A question back is a next move, not a dead end
+
+When the model asks something — "do you mean the UK sites or the US ones?" —
+it appeared as a warning box with nowhere to go. The answer belongs on the end
+of the description, so the whole request stays in one place and is read afresh
+next time. It now says exactly that, and a button puts the cursor at the end of
+the box ready for the answer.
+
+## The steps say how far along you are, and never lock
+
+Each step carries a tick once it is behind you, and ticking a first field
+scrolls to the columns while a resolved description scrolls to the sheet it
+produced. Two things it deliberately does not do:
+
+- **It does not lock.** The order is real — you cannot name columns before
+  choosing fields — but somebody who wants to go back and change the item type
+  should not have to undo four steps. A tick is guidance; a lock is an
+  obstruction to a person who knows what they are doing.
+- **It does not tick what nobody has done.** "Name it" and "The rows" both have
+  usable defaults and were ticked from the moment the page opened, which is the
+  page claiming progress on the user's behalf. Everything after "which fields"
+  now waits on a field being chosen: a name and a row source are only answers to
+  a sheet that exists.
+
+And it scrolls at two moments only — the description filling the form in, and
+the first field being ticked — because a page that moves under somebody who is
+working is worse than one that never moves.

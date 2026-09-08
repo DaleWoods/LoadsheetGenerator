@@ -84,6 +84,12 @@ checking, and hides none of the result.
   was visible in these files. `exportShape.test.ts` holds the generator to
   three of them line for line.
 
+- **The build page has two routes and one specification.** Describing it and
+  picking fields by hand fill in the same thing, so they stay on one page with
+  the description first - hiding the steps behind a tab would hide what the
+  description just did. Step ticks are guidance, never locks: somebody who
+  wants to change the item type after step six should not have to undo five.
+
 - **A new action needs an audit row.** Anything that changes something, sends
   something out of the app, or is worth accounting for goes through
   `record()` in `auditService.ts` - called without being awaited, because

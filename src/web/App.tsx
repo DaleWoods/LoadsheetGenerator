@@ -37,6 +37,15 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
   const [attributes, setAttributes] = useState<AttributeView[]>([]);
   const [chosen, setChosen] = useState<ChosenField[]>([]);
   const [codeList, setCodeList] = useState('');
+  /*
+   * Where to carry somebody once a stage is behind them. Only on the two
+   * moments where the next thing is off screen - the description filling the
+   * form in, and the first field being ticked - because a page that moves
+   * under you while you are working is worse than one that does not move.
+   */
+  const columnsRef = useRef<HTMLDivElement>(null);
+  const reviewRef = useRef<HTMLDivElement>(null);
+  const hadFields = useRef(false);
   const [name, setName] = useState('');
   const [dataSource, setDataSource] = useState<DataSource>('template');
   const [pasted, setPasted] = useState('');
@@ -103,7 +112,12 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
   }
 
   function applyResolution(resolution: Resolution): void {
-    if (resolution.request) applyRequest(resolution.request);
+    if (resolution.request) {
+      applyRequest(resolution.request);
+      // The description has filled the steps in; the useful thing is now the
+      // sheet it produced, which is below the fold.
+      window.setTimeout(() => reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    }
   }
 
   // Reusing something from the history loads what was asked for, not the files
@@ -191,6 +205,33 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
     (aligned?.rows.length ?? 0) > 0 &&
     (aligned?.rows ?? []).every((row) => (row[0] ?? '').trim() === '');
 
+  /*
+   * Which steps are behind you. Shown rather than enforced: the order is real -
+   * you cannot name columns before choosing fields - but somebody who wants to
+   * jump back and change the item type should not have to undo four steps to
+   * do it. A tick is guidance; a lock would be an obstruction.
+   */
+  const picked = chosen.length > 0;
+  const done: Record<number, boolean> = {
+    // Both of these have a real answer from the moment the page opens, so they
+    // are done. Everything after them waits on a field being ticked: a name
+    // and a row source are only answers to a sheet that exists, and ticking
+    // them earlier made the page claim progress nobody had made.
+    1: true,
+    2: itemType !== '',
+    3: picked,
+    4: picked,
+    5: picked && (name.trim() !== '' || sheetName.trim() !== ''),
+    6: picked && (direction === 'export' ? codesText.trim() !== '' || selection.kind !== 'skuList' : true),
+    7: downloaded,
+  };
+
+  useEffect(() => {
+    const has = chosen.length > 0;
+    if (has && !hadFields.current) columnsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    hadFields.current = has;
+  }, [chosen.length]);
+
   const unverified = preview?.unverified ?? [];
 
   const inFlight = useRef<AbortController | null>(null);
@@ -267,25 +308,41 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
       <div className="page-head">
         <h1>Build a load sheet</h1>
         <p>
-          Pick what you need and the app writes the ImpEx script and its matching CSV the way the team already writes
-          them. Uploading into HAC stays your step.
+          The app writes the ImpEx script and its matching CSV the way the team already writes them. Uploading into HAC
+          stays your step.
         </p>
       </div>
 
+      {/*
+        * Two ways to the same place, and they are not equal: describing it is
+        * quicker and is what most people will use, so it comes first and is
+        * marked as the way to start. The steps below are the same
+        * specification either way - describing fills them in, and everything
+        * stays adjustable - which is why this is one page with a divider
+        * rather than two tabs that would hide the result of the first.
+        */}
       {describeEnabled ? (
-        <section className="card" style={{ marginBottom: 18 }}>
-          <h2 className="step" style={{ marginTop: 0 }}>
-            In a hurry? Just say what you need
-            <span className="step-hint">it fills the steps below in for you</span>
-          </h2>
+        <section className="card route-primary">
+          <span className="route-badge">The quick way</span>
+          <h2 className="route-head">Say what you need</h2>
+          <p className="route-lead">
+            Describe the load sheet in your own words and Claude fills in every step below. Nothing is generated until
+            you have seen it, and you can change any of it.
+          </p>
           <DescribeBox enabled={describeEnabled} onResolved={applyResolution} />
         </section>
+      ) : null}
+
+      {describeEnabled ? (
+        <div className="route-divider">
+          <span>or set it up yourself</span>
+        </div>
       ) : null}
 
       <div className="columns">
         <section className="card">
           <h2 className="step" style={{ marginTop: 0 }}>
-            <span className="step-number">1</span> What are you doing?
+            <span className={done[1] ? 'step-number is-done' : 'step-number'}>{done[1] ? '✓' : '1'}</span> What are you doing?
           </h2>
           <div className="choices">
             <label>
@@ -299,7 +356,7 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
           </div>
 
           <h2 className="step">
-            <span className="step-number">2</span> What kind of record?
+            <span className={done[2] ? 'step-number is-done' : 'step-number'}>{done[2] ? '✓' : '2'}</span> What kind of record?
           </h2>
           <label className="stacked">
             Item type
@@ -320,15 +377,15 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
           </label>
 
           <h2 className="step">
-            <span className="step-number">3</span> Which fields?
+            <span className={done[3] ? 'step-number is-done' : 'step-number'}>{done[3] ? '✓' : '3'}</span> Which fields?
             <span className="step-hint">the key is added for you</span>
           </h2>
           <FieldPicker attributes={attributes} chosen={chosen} inUse={inUse} onChange={setChosen} />
 
           {chosen.length > 0 ? (
-            <>
+            <div ref={columnsRef}>
               <h2 className="step">
-                <span className="step-number">4</span> The columns, in order
+                <span className={done[4] ? 'step-number is-done' : 'step-number'}>{done[4] ? '✓' : '4'}</span> The columns, in order
               </h2>
               <ChosenFields
                 chosen={chosen}
@@ -336,13 +393,13 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
                 columns={preview?.columns ?? null}
                 onChange={setChosen}
               />
-            </>
+            </div>
           ) : null}
         </section>
 
-        <section className="card">
+        <section className="card" ref={reviewRef}>
           <h2 className="step" style={{ marginTop: 0 }}>
-            <span className="step-number">5</span> Name it
+            <span className={done[5] ? 'step-number is-done' : 'step-number'}>{done[5] ? '✓' : '5'}</span> Name it
           </h2>
           <label className="stacked">
             Load sheet name
@@ -355,7 +412,7 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
           </label>
 
           <h2 className="step">
-            <span className="step-number">6</span> {direction === 'export' ? 'Which records to pull' : 'The rows'}
+            <span className={done[6] ? 'step-number is-done' : 'step-number'}>{done[6] ? '✓' : '6'}</span> {direction === 'export' ? 'Which records to pull' : 'The rows'}
           </h2>
           {direction === 'export' ? (
             <ExportPanel
@@ -441,7 +498,7 @@ export function App({ reuse }: { reuse?: SheetRequest | null } = {}): JSX.Elemen
           ) : null}
 
           <h2 className="step">
-            <span className="step-number">7</span> Check it, then take it
+            <span className={done[7] ? 'step-number is-done' : 'step-number'}>{done[7] ? '✓' : '7'}</span> Check it, then take it
           </h2>
           {unverified.length > 0 ? (
             <label className="confirm">

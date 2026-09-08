@@ -8,7 +8,7 @@
  * the same reason.
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { describeSheet, type Resolution } from './api.js';
 
 interface Props {
@@ -39,6 +39,7 @@ export const EXAMPLES: { text: string; attributes: string[] }[] = [
 ];
 
 export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
+  const box = useRef<HTMLTextAreaElement>(null);
   const [description, setDescription] = useState('');
   const [resolution, setResolution] = useState<Resolution | null>(null);
   const [working, setWorking] = useState(false);
@@ -72,9 +73,13 @@ export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
   return (
     <div className="describe">
       <textarea
+        ref={box}
         className="paste"
         value={description}
         onChange={(event) => setDescription(event.target.value)}
+        onKeyDown={(event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void run();
+        }}
         placeholder={`What do you need?  For example:\n\n${EXAMPLES.map((example) => `· ${example.text}`).join('\n')}`}
         aria-label="Describe the load sheet"
       />
@@ -93,11 +98,31 @@ export function DescribeBox({ onResolved, enabled }: Props): JSX.Element {
         <div className="resolution">
           <p>{resolution.summary}</p>
 
+          {/*
+            * A question back is not a dead end, and it used to read like one -
+            * a warning box with no next move. The answer belongs on the end of
+            * the description, so the whole request stays in one place and can
+            * be run again as it stands.
+            */}
           {resolution.clarification ? (
-            <p className="finding finding-warning">
-              <span className="finding-severity">question</span>
-              <span>{resolution.clarification}</span>
-            </p>
+            <div className="asked-back">
+              <p className="asked-back-question">{resolution.clarification}</p>
+              <p className="muted">
+                Add the answer to the end of your description above, then work it out again — the whole request is read
+                afresh each time.
+              </p>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => {
+                  setDescription((current) => `${current.trimEnd()}\n\n`);
+                  box.current?.focus();
+                  box.current?.setSelectionRange(box.current.value.length, box.current.value.length);
+                }}
+              >
+                Add to my description
+              </button>
+            </div>
           ) : null}
 
           {resolution.fields.length > 0 ? (
