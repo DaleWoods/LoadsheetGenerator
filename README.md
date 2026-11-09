@@ -31,6 +31,7 @@ src/server/
 src/web/         signing in, the field picker (Mode B), the describe box (Mode A),
                  export selection, the query writer, the repository, history,
                  accounts
+PROJECT_BRIEF.md the non-technical summary: the problem, the steps, the numbers
 docs/
   loadsheet-generator-spec.md        what was asked for
   load-sheet-template-library.md     the house conventions, written up
